@@ -143,7 +143,25 @@ this.lingo.game = function (glob) {
   // Keyboard
   var keyboardHTMLElement = document.createElement("template");
 
-  keyboardHTMLElement.innerHTML = "<h1>KEYBOARD</h1>";
+  keyboardHTMLElement.innerHTML = `
+    <style>
+		  :host {
+  			height: var(--keyboard-height);
+  		}
+  		#keyboard {
+  			margin: 0 8px;
+  			user-select: none;
+  		}
+  		.row {
+  			display: flex;
+  			width: 100%;
+  			margin: 0 auto 8px;
+  			/* https://stackoverflow.com/questions/46167604/ios-html-disable-double-tap-to-zoom */
+  			touch-action: manipulation;
+  		}
+    </style>
+    <h1>KEYBOARD</h1>
+  `;
 
   var keyboard = function(e) {
     setPrototype(t, e);
@@ -173,6 +191,16 @@ this.lingo.game = function (glob) {
 
   var gameRootElement = document.createElement("template");
   gameRootElement.innerHTML = `
+    <style>
+      game-keyboard {
+  			width: 100%;
+  			max-width: var(--game-max-width);
+  			margin: 0 auto;
+  			height: calc(100% - var(--header-height));
+  			display: flex;
+  			flex-direction: column;
+  		}
+    </style>
     <p>Text from innerHTML</p>
     <game-keyboard></game-keyboard>
   `;
