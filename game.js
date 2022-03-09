@@ -153,6 +153,10 @@ this.lingo.game = function (glob) {
   var spacer = document.createElement("template");
     spacer.innerHTML = `<div class="spacer"></div>`;
 
+  // game board
+
+
+
   // Keyboard
   var keyboardHTMLElement = document.createElement("template");
 
@@ -269,6 +273,21 @@ this.lingo.game = function (glob) {
         right: 0;
         pointer-events: none;
       }
+      #board-container {
+  			width: 100%;
+  			max-width: var(--game-max-width);
+  			margin: 0 auto;
+  			height: calc(100% - var(--header-height) - var(--keyboard-height));
+  			display: flex;
+  			flex-direction: column;
+      }
+      #game-board {
+  			display: flex;
+  			justify-content: center;
+  			align-items: center;
+  			flex-grow: 1;
+  			overflow: hidden;
+  		}
       game-keyboard {
   			width: 100%;
   			max-width: var(--game-max-width);
@@ -291,7 +310,11 @@ this.lingo.game = function (glob) {
 				</button>
 			</div>
     </header>
-    <p>Text from innerHTML</p>
+    <div id="board-container">
+      <div id="game-board">
+        <h1>Play here</h1>
+      </div>
+    </div>
     <game-keyboard></game-keyboard>
   `;
 
