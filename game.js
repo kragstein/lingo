@@ -149,13 +149,13 @@ this.lingo.game = function (glob) {
   			height: var(--keyboard-height);
   		}
   		#keyboard {
-  			margin: 0 8px;
+  			/* margin: 0 8px; */
   			user-select: none;
   		}
   		.row {
   			display: flex;
   			width: 100%;
-  			margin: 0 auto 8px;
+  			/* margin: 0 auto 8px; */
   			/* https://stackoverflow.com/questions/46167604/ios-html-disable-double-tap-to-zoom */
   			touch-action: manipulation;
   		}
@@ -163,26 +163,26 @@ this.lingo.game = function (glob) {
     <h1>KEYBOARD</h1>
   `;
 
-  var keyboard = function(e) {
-    setPrototype(t, e);
-    var a = constructElement(t);
+  var keyboard = function(htmlElement) {
 
-    function t() {
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
       var e;
-      isInstanceOf(this, t);
-      (e = a.call(this)).attachShadow({ mode: "open" });
-
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
       return e;
     }
 
-    addKeyFunction(t, [{
+    addKeyFunction(returnFunction , [{
       key: "connectedCallback",
       value: function () {
         this.shadowRoot.appendChild(keyboardHTMLElement.content.cloneNode(!0));
       }
     }]);
 
-    return t;
+    return returnFunction;
   }(SomethingElement(HTMLElement));
 
   customElements.define("game-keyboard", keyboard);
@@ -192,6 +192,27 @@ this.lingo.game = function (glob) {
   var gameRootElement = document.createElement("template");
   gameRootElement.innerHTML = `
     <style>
+      header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        padding: 0 16px;
+        height: var(--header-height);
+        color: var(--color-tone-1);
+        border-bottom: 1px solid var(--color-tone-4);
+      }
+      header .title {
+        font-weight: 700;
+        font-size: 37px;
+        line-height: 100%;
+        letter-spacing: 0.01em;
+        text-align: center;
+        left: 0;
+        right: 0;
+        pointer-events: none;
+      }
       game-keyboard {
   			width: 100%;
   			max-width: var(--game-max-width);
@@ -201,6 +222,19 @@ this.lingo.game = function (glob) {
   			flex-direction: column;
   		}
     </style>
+    <header>
+      <div class="menu-left">
+				<button id="help-button" class="icon" aria-label="Help" tabindex="-1">
+					?
+				</button>
+			</div>
+      <div class="title">Lingo</div>
+      <div class="menu-right">
+				<button id="statistics-button" class="icon" aria-label="Statistics" tabindex="-1">
+					S
+				</button>
+			</div>
+    </header>
     <p>Text from innerHTML</p>
     <game-keyboard></game-keyboard>
   `;
@@ -221,8 +255,12 @@ this.lingo.game = function (glob) {
       key: "connectedCallback",
       value: function () {
         this.shadowRoot.appendChild(gameRootElement.content.cloneNode(!0));
-      }
-    }]);
+        this.shadowRoot.getElementById("help-button").
+           addEventListener("click", (function(e) {
+             console.log("CLICK");
+           }));
+      }}
+    ]);
 
     return returnFunction;
   }(SomethingElement(HTMLElement));
