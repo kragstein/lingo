@@ -145,6 +145,7 @@ this.lingo.game = function (glob) {
     ["-", "a", "s", "d", "f", "g", "h", "j", "k", "l", "-"],
     ["ENTER", "z", "x", "c", "v", "b", "n", "m", "BACK"]
   ];
+  var alphabet = "abcdefghijklmnopqrstuvwxyz";
 
   // Buttons
   var button = document.createElement("template");
@@ -228,6 +229,15 @@ this.lingo.game = function (glob) {
              }
            }
          });
+
+         window.addEventListener("keydown", (function(a) {
+           if (!0 !== a.repeat) {
+             var s = a.key;
+             if (alphabet.includes(s.toLowerCase()) || "Backspace" === s || "Enter" === s) {
+               console.log(s)
+             }
+           }
+         }));
 
         keyboardLetterPattern.forEach(function(line) {
           var row = document.createElement("div");
