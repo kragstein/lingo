@@ -198,6 +198,7 @@ this.lingo.game = function (glob) {
       .half {    flex: 0.5;  }
       .one-and-a-half {    flex: 1.5;  }
     </style>
+    <div id="keyboard"></div>
   `;
 
   var keyboard = function(htmlElement) {
@@ -218,6 +219,16 @@ this.lingo.game = function (glob) {
         var lThis = this;
         this.shadowRoot.appendChild(keyboardHTMLElement.content.cloneNode(!0));
 
+        this.$keyboard = this.shadowRoot.getElementById("keyboard");
+        this.$keyboard.addEventListener("click", function(a) {
+          var target  = a.target.closest("button");
+          if (target) {
+            if (lThis.$keyboard.contains(target)) {
+               console.log(target.dataset.key);
+             }
+           }
+         });
+
         keyboardLetterPattern.forEach(function(line) {
           var row = document.createElement("div");
           row.classList.add("row");
@@ -230,13 +241,14 @@ this.lingo.game = function (glob) {
             var letter;
               letter = button.content.cloneNode(!0);
               letter.firstElementChild.textContent = e;
+              letter.firstElementChild.dataset.key = e;
               if (e.length > 1) {
                 letter.firstElementChild.classList.add("one-and-a-half");
               }
               row.appendChild(letter);
             }
           });
-          lThis.shadowRoot.appendChild(row);
+          lThis.$keyboard.appendChild(row);
         });
 
       }
