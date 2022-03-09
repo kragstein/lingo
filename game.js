@@ -140,6 +140,19 @@ this.lingo.game = function (glob) {
 
   // Building the game
 
+  var keyboardLetterPattern = [
+    ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+    ["-", "a", "s", "d", "f", "g", "h", "j", "k", "l", "-"],
+    ["ENTER", "z", "x", "c", "v", "b", "n", "m", "BACK"]
+  ];
+
+  // Buttons
+  var button = document.createElement("template");
+  button.innerHTML = "<button>key</button>\n";
+
+  var spacer = document.createElement("template");
+    spacer.innerHTML = `<div class="spacer"></div>`;
+
   // Keyboard
   var keyboardHTMLElement = document.createElement("template");
 
@@ -155,12 +168,32 @@ this.lingo.game = function (glob) {
   		.row {
   			display: flex;
   			width: 100%;
-  			/* margin: 0 auto 8px; */
+  			margin: 0 auto 8px;
   			/* https://stackoverflow.com/questions/46167604/ios-html-disable-double-tap-to-zoom */
   			touch-action: manipulation;
   		}
+		  button {
+        font-family: inherit;
+			  font-weight: bold;
+  			border: 0;
+  			padding: 0;
+  			margin: 0 6px 0 0;
+  			height: 58px;
+  			border-radius: 4px;
+  			cursor: pointer;
+  			user-select: none;
+  			background-color: var(--key-bg);
+  			color: var(--key-text-color);
+  			flex: 1;
+  			display: flex;
+  			justify-content: center;
+  			align-items: center;
+  			text-transform: uppercase;
+  			-webkit-tap-highlight-color: rgba(0,0,0,0.3);
+      }
+      .half {    flex: 0.5;  }
+      .one-and-a-half {    flex: 1.5;  }
     </style>
-    <h1>KEYBOARD</h1>
   `;
 
   var keyboard = function(htmlElement) {
@@ -178,7 +211,30 @@ this.lingo.game = function (glob) {
     addKeyFunction(returnFunction , [{
       key: "connectedCallback",
       value: function () {
+        var lThis = this;
         this.shadowRoot.appendChild(keyboardHTMLElement.content.cloneNode(!0));
+
+        keyboardLetterPattern.forEach(function(line) {
+          var row = document.createElement("div");
+          row.classList.add("row");
+          line.forEach(function(e) {
+            if (e === "-") {
+              var sp = spacer.content.cloneNode(!0);
+              sp.firstElementChild.classList.add("half");
+              row.appendChild(sp);
+            } else {
+            var letter;
+              letter = button.content.cloneNode(!0);
+              letter.firstElementChild.textContent = e;
+              if (e.length > 1) {
+                letter.firstElementChild.classList.add("one-and-a-half");
+              }
+              row.appendChild(letter);
+            }
+          });
+          lThis.shadowRoot.appendChild(row);
+        });
+
       }
     }]);
 
