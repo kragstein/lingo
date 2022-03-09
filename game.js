@@ -215,6 +215,17 @@ this.lingo.game = function (glob) {
     }
 
     addKeyFunction(returnFunction , [{
+      key: "dispatchKeyPressEvent",
+      value: function(e) {
+        this.dispatchEvent(new CustomEvent("game-key-press", {
+          bubbles: !0,
+          composed: !0,
+          detail: {
+            key: e
+          }
+        }));
+      }
+    },{
       key: "connectedCallback",
       value: function () {
         var lThis = this;
@@ -225,7 +236,7 @@ this.lingo.game = function (glob) {
           var target  = a.target.closest("button");
           if (target) {
             if (lThis.$keyboard.contains(target)) {
-               console.log(target.dataset.key);
+               lThis.dispatchKeyPressEvent(target.dataset.key);
              }
            }
          });
@@ -234,7 +245,7 @@ this.lingo.game = function (glob) {
            if (!0 !== a.repeat) {
              var s = a.key;
              if (alphabet.includes(s.toLowerCase()) || "Backspace" === s || "Enter" === s) {
-               console.log(s)
+               lThis.dispatchKeyPressEvent(s);
              }
            }
          }));
@@ -367,6 +378,12 @@ this.lingo.game = function (glob) {
              addEventListener("click", (function(e) {
                gameRootThis.showHelpModal();
              }));
+
+          this.shadowRoot;
+          this.addEventListener("game-key-press", (function(e) {
+            var letter = e.detail.key;
+            console.log("FROM HEAD GAME" + letter);
+          }));
         }
       }
     ]);
