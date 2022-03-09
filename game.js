@@ -251,15 +251,23 @@ this.lingo.game = function (glob) {
       return e;
     }
 
-    addKeyFunction(returnFunction , [{
-      key: "connectedCallback",
-      value: function () {
-        this.shadowRoot.appendChild(gameRootElement.content.cloneNode(!0));
-        this.shadowRoot.getElementById("help-button").
-           addEventListener("click", (function(e) {
-             console.log("CLICK");
-           }));
-      }}
+    addKeyFunction(returnFunction , [
+      {
+        key: "showHelpModal",
+        value: function () {
+          console.log("help");
+        }
+      }, {
+        key: "connectedCallback",
+        value: function () {
+          var gameRootThis = this;
+          this.shadowRoot.appendChild(gameRootElement.content.cloneNode(!0));
+          this.shadowRoot.getElementById("help-button").
+             addEventListener("click", (function(e) {
+               gameRootThis.showHelpModal();
+             }));
+        }
+      }
     ]);
 
     return returnFunction;
