@@ -20,6 +20,22 @@ this.lingo.game = function (glob) {
     }
   }
 
+  function addKeyValueToDict(e /* dict */, a /* string */, s /* integer */) {
+        return a in e ? Object.defineProperty(e, a, {
+            value: s,
+            enumerable: !0,
+            configurable: !0,
+            writable: !0
+        }) : e[a] = s, e
+    }
+
+  function NotInitializedError(e) {
+    if (void 0 === e)
+      throw new ReferenceError(
+        "this hasn't been initialised - super() hasn't been called");
+    return e;
+  }
+
   function isReflectAvailable() {
     if ("undefined" == typeof Reflect || !Reflect.construct) {
       // Only undefined in Internet explorer
@@ -465,6 +481,14 @@ this.lingo.game = function (glob) {
       var e;
       isInstanceOf(this, returnFunction);
       (e = element.call(this)).attachShadow({ mode: "open" });
+
+      addKeyValueToDict(NotInitializedError(e), "tileIndex", 0);
+      addKeyValueToDict(NotInitializedError(e), "rowIndex", 0);
+      addKeyValueToDict(NotInitializedError(e), "boardState", void 0);
+
+      // Most state is stored in the game-root element
+      e.boardState = new Array(6).fill("");
+
       return e;
     }
 
@@ -473,6 +497,16 @@ this.lingo.game = function (glob) {
         key: "showHelpModal",
         value: function () {
           console.log("help");
+        }
+      }, {
+        key: "addLetter",
+        value: function(letter) {
+          console.log("Adding letter: " + letter);
+          this.boardState[this.rowIndex] += letter;
+          var row = this.$board.querySelectorAll("game-row");
+          row[this.rowIndex].setAttribute("letters",
+            this.boardState[this.rowIndex]);
+          this.tileIndex += 1;
         }
       }, {
         key: "connectedCallback",
@@ -486,7 +520,7 @@ this.lingo.game = function (glob) {
 
           this.addEventListener("game-key-press", (function(e) {
             var letter = e.detail.key;
-            console.log("FROM HEAD GAME" + letter);
+            this.addLetter(letter);
           }));
 
           this.$board = this.shadowRoot.querySelector("#board");
@@ -508,7 +542,8 @@ this.lingo.game = function (glob) {
           var e = this.shadowRoot.querySelector("#board-container");
           var a = Math.min(Math.floor(e.clientHeight * (5 / 6)), 350);
           var s = 6 * Math.floor(a / 5);
-          this.$board.style.width = "".concat(a, "px"), this.$board.style.height = "".concat(s, "px")
+          this.$board.style.width = "".concat(a, "px");
+          this.$board.style.height = "".concat(s, "px");
         }
       }
     ]);
