@@ -240,6 +240,7 @@ this.lingo.game = function (glob) {
       var e;
       isInstanceOf(this, returnFunction);
       (e = element.call(this)).attachShadow({ mode: "open" });
+      e._letters = "";
       return e;
     }
 
@@ -253,23 +254,36 @@ this.lingo.game = function (glob) {
           var tile = document.createElement("game-tile");
           this.$row.appendChild(tile);
         }
+        this.$tiles = this.shadowRoot.querySelectorAll("game-tile");
       }
     }, {
       key: "attributeChangedCallback",
       value: function(e, a, s) {
         console.log("attribute changed");
         switch (e) {
-          case "letters:":
+          case "letters":
             this._letters = s || "";
             break;
           case "length":
             this._length = parseInt(s, 10);
             break;
         }
+        this._update();
       }
-    }]
-
-    , [{
+    }, {
+      key: "_update",
+      value: function() {
+        var e = this;
+        if (this.$row) {
+          this.$tiles.forEach((function(tile, index) {
+            var letter = e._letters[index];
+            letter ?
+              tile.setAttribute("letter", letter) :
+              tile.removeAttribute("letter");
+          }))
+        }
+      }
+    }], [{
       key: "observedAttributes",
       get: function() {
         return ["letters", "length"];
