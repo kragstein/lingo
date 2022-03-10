@@ -7,7 +7,7 @@ this.lingo.game = function (glob) {
   console.log("Implement game here");
 
   function addKeyFunction(e, a, s) {
-    return a && addDictToElement(e.prototype, a), s && t(e, s), e
+    return a && addDictToElement(e.prototype, a), s && addDictToElement(e, s), e
   }
 
   function addDictToElement(elementToBuild, functionDict) {
@@ -259,12 +259,24 @@ this.lingo.game = function (glob) {
       value: function(e, a, s) {
         console.log("attribute changed");
         switch (e) {
+          case "letters:":
+            this._letters = s || "";
+            break;
           case "length":
             this._length = parseInt(s, 10);
+            break;
         }
       }
-    }
-  ]);
+    }]
+
+    , [{
+      key: "observedAttributes",
+      get: function() {
+        return ["letters", "length"];
+      }
+    }]
+
+  );
 
     return returnFunction;
   }(SomethingElement(HTMLElement));
