@@ -185,11 +185,17 @@ this.lingo.game = function (glob) {
       user-select: none;
     }
     :host { display: inline-block; }
-    .tile { border: 2px solid var(--color-tone-4); }
+    
     .tile::before { /* Magic ? */
       content: '';
       display: inline-block;
       padding-bottom: 100%;
+    }
+    .tile[data-state='empty'] { border: 2px solid var(--color-tone-4); }
+    .tile[data-state='tbd'] {
+      background-color: var(--color-tone-7);
+      border: 2px solid var(--color-tone-3);
+      color: var(--color-tone-1);
     }
     </style>
     <div class="tile" data-state="empty" data-animation="idle"></div>
@@ -203,6 +209,8 @@ this.lingo.game = function (glob) {
       var e;
       isInstanceOf(this, returnFunction);
       (e = element.call(this)).attachShadow({ mode: "open" });
+
+      addKeyValueToDict(NotInitializedError(e), "_letter", "");
       return e;
     }
 
@@ -210,7 +218,36 @@ this.lingo.game = function (glob) {
       key: "connectedCallback",
       value: function() {
         var e = this;
-        this.shadowRoot.appendChild(gameTileElement.content.cloneNode(!0))
+        this.shadowRoot.appendChild(gameTileElement.content.cloneNode(!0));
+        this.$tile = this.shadowRoot.querySelector(".tile");
+      }
+    }, {
+      key: "attributeChangedCallback",
+      value: function(e, a, s) {
+        switch (e) {
+          case "letter":
+            if (s === a) {
+              break;
+            }
+            this._state = s ? "tbd" : "empty";
+            this._letter = s;
+            break;
+        }
+        this._update();
+      }
+    }, {
+      key: "_update",
+      value: function () {
+        console.log("Updating a letter");
+        this.$tile.textContent = this._letter;
+        if (["empty", "tbd"].includes(this._state)) {
+          (this.$tile.dataset.state = this._state);
+        }
+      }
+    }], [{
+      key: "observedAttributes",
+      get: function() {
+        return ["letter"];
       }
     }]);
 
@@ -259,7 +296,6 @@ this.lingo.game = function (glob) {
     }, {
       key: "attributeChangedCallback",
       value: function(e, a, s) {
-        console.log("attribute changed");
         switch (e) {
           case "letters":
             this._letters = s || "";
@@ -527,14 +563,34 @@ this.lingo.game = function (glob) {
       }, {
         key: "addLetter",
         value: function(letter) {
-          console.log("Adding letter: " + letter);
-          this.boardState[this.rowIndex] += letter;
-          var row = this.$board.querySelectorAll("game-row");
-          row[this.rowIndex].setAttribute("letters",
-            this.boardState[this.rowIndex]);
-          this.tileIndex += 1;
+          if (this.tileIndex < 5) {
+            this.boardState[this.rowIndex] += letter;
+            var row = this.$board.querySelectorAll("game-row");
+            row[this.rowIndex].setAttribute("letters",
+              this.boardState[this.rowIndex]);
+            this.tileIndex += 1;
+          }
         }
       }, {
+        key: "removeLetter",
+        value: function () {
+          console.log("removeLetter");
+          if (!(this.tileIndex <= 0)) {
+            this.boardState[this.rowIndex] = this.boardState[this.rowIndex]
+              .slice(0, this.boardState[this.rowIndex].length - 1);
+            var row = this.$board.querySelectorAll("game-row")[this.rowIndex];
+            this.boardState[this.rowIndex] ?
+              row.setAttribute("letters", this.boardState[this.rowIndex]) :
+              row.removeAttribute("letters");
+            this.tileIndex -= 1;
+          }
+        }
+      }, {
+        key: "submitGuess",
+        value: function() {
+          console.log("Submiting guess");
+        }
+      } ,{
         key: "connectedCallback",
         value: function () {
           var gameRootThis = this;
@@ -546,7 +602,13 @@ this.lingo.game = function (glob) {
 
           this.addEventListener("game-key-press", (function(e) {
             var letter = e.detail.key;
-            this.addLetter(letter);
+            if (letter === "BACK" || letter === "Backspace") {
+              this.removeLetter();
+            } else if (letter === "ENTER" || letter === "Enter") {
+              this.submitGuess();
+            } else if (alphabet.includes(letter.toLowerCase())) {
+              this.addLetter(letter);
+            }
           }));
 
           this.$board = this.shadowRoot.querySelector("#board");
@@ -564,7 +626,6 @@ this.lingo.game = function (glob) {
       }, {
         key: "sizeBoard",
         value: function() {
-          console.log("Resizing....");
           var e = this.shadowRoot.querySelector("#board-container");
           var a = Math.min(Math.floor(e.clientHeight * (5 / 6)), 350);
           var s = 6 * Math.floor(a / 5);
