@@ -185,7 +185,7 @@ this.lingo.game = function (glob) {
       user-select: none;
     }
     :host { display: inline-block; }
-    
+
     .tile::before { /* Magic ? */
       content: '';
       display: inline-block;
@@ -196,6 +196,18 @@ this.lingo.game = function (glob) {
       background-color: var(--color-tone-7);
       border: 2px solid var(--color-tone-3);
       color: var(--color-tone-1);
+    }
+
+    .tile[data-animation='pop'] {
+      animation-name: PopIn; animation-duration: 500ms;
+    }
+
+    @keyframes PopIn {
+      from {
+        transform: scale(0.8); opacity: 0;
+      }
+      40% { transform: scale(1.1); opacity: 1;
+      }
     }
     </style>
     <div class="tile" data-state="empty" data-animation="idle"></div>
@@ -211,6 +223,7 @@ this.lingo.game = function (glob) {
       (e = element.call(this)).attachShadow({ mode: "open" });
 
       addKeyValueToDict(NotInitializedError(e), "_letter", "");
+      addKeyValueToDict(NotInitializedError(e), "_animation", "idle");
       return e;
     }
 
@@ -220,6 +233,10 @@ this.lingo.game = function (glob) {
         var e = this;
         this.shadowRoot.appendChild(gameTileElement.content.cloneNode(!0));
         this.$tile = this.shadowRoot.querySelector(".tile");
+        this.$tile.addEventListener("animationend", (function(a) {
+          e._anmiation = "idle";
+          e._update();
+        }));
       }
     }, {
       key: "attributeChangedCallback",
@@ -231,6 +248,7 @@ this.lingo.game = function (glob) {
             }
             this._state = s ? "tbd" : "empty";
             this._letter = s;
+            this._animation = s ? "pop" : "idle";
             break;
         }
         this._update();
@@ -242,6 +260,7 @@ this.lingo.game = function (glob) {
         this.$tile.textContent = this._letter;
         if (["empty", "tbd"].includes(this._state)) {
           (this.$tile.dataset.state = this._state);
+          this.$tile.dataset.animation = this._animation;
         }
       }
     }], [{
