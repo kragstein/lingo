@@ -154,9 +154,106 @@ this.lingo.game = function (glob) {
   var spacer = document.createElement("template");
     spacer.innerHTML = `<div class="spacer"></div>`;
 
-  // game board
+  // Game board
 
+  // Game Tile
 
+  var gameTileElement = document.createElement("template");
+  gameTileElement.innerHTML = `
+    <style>
+    .tile {
+      width: 100%; display: inline-flex; justify-content: center;
+      align-items: center; font-size: 2rem; line-height: 2rem;
+      font-weight: bold; vertical-align: middle; box-sizing: border-box;
+      color: var(--tile-text-color); text-transform: uppercase;
+      user-select: none;
+    }
+    :host { display: inline-block; }
+    .tile { border: 2px solid var(--color-tone-4); }
+    .tile::before { /* Magic ? */
+      content: '';
+      display: inline-block;
+      padding-bottom: 100%;
+    }
+    </style>
+    <div class="tile" data-state="empty" data-animation="idle"></div>
+  `;
+
+  var gameTile = function(htmlElement) {
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+      return e;
+    }
+
+    addKeyFunction(returnFunction , [{
+      key: "connectedCallback",
+      value: function() {
+        var e = this;
+        this.shadowRoot.appendChild(gameTileElement.content.cloneNode(!0))
+      }
+    }]);
+
+    return returnFunction;
+  }(SomethingElement(HTMLElement));
+
+  customElements.define("game-tile", gameTile);
+
+  // Game Row
+
+  var gameRowElement = document.createElement("template");
+  gameRowElement.innerHTML = `
+    <style>
+    :host { display: block; }
+    .row {
+      display: grid; grid-template-columns: repeat(5, 1fr); grid-gap: 5px;
+    }
+    </style>
+    <div class="row"></div>
+  `;
+
+  var gameRow = function(htmlElement) {
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+      return e;
+    }
+
+    addKeyFunction(returnFunction , [{
+      key: "connectedCallback",
+      value: function() {
+        var e = this;
+        e.shadowRoot.appendChild(gameRowElement.content.cloneNode(!0))
+        this.$row = this.shadowRoot.querySelector(".row")
+        for (var count = 0; count < 5 /* this._length */; count++) {
+          var tile = document.createElement("game-tile");
+          this.$row.appendChild(tile);
+        }
+      }
+    }, {
+      key: "attributeChangedCallback",
+      value: function(e, a, s) {
+        console.log("attribute changed");
+        switch (e) {
+          case "length":
+            this._length = parseInt(s, 10);
+        }
+      }
+    }
+  ]);
+
+    return returnFunction;
+  }(SomethingElement(HTMLElement));
+
+  customElements.define("game-row", gameRow);
 
   // Keyboard
   var keyboardHTMLElement = document.createElement("template");
@@ -306,7 +403,7 @@ this.lingo.game = function (glob) {
         right: 0;
         pointer-events: none;
       }
-      #board-container {
+      #game {
   			width: 100%;
   			max-width: var(--game-max-width);
   			margin: 0 auto;
@@ -314,12 +411,19 @@ this.lingo.game = function (glob) {
   			display: flex;
   			flex-direction: column;
       }
-      #game-board {
+      #board-container {
   			display: flex;
   			justify-content: center;
   			align-items: center;
   			flex-grow: 1;
   			overflow: hidden;
+  		}
+  		#board {
+  			display: grid;
+  			grid-template-rows: repeat(6, 1fr);
+  			grid-gap: 5px;
+  			padding:10px;
+  			box-sizing: border-box;
   		}
       game-keyboard {
   			width: 100%;
@@ -343,9 +447,10 @@ this.lingo.game = function (glob) {
 				</button>
 			</div>
     </header>
-    <div id="board-container">
-      <div id="game-board">
-        <h1>Play here</h1>
+    <div id="game">
+      <div id="board-container">
+        <div id="board">
+        </div>
       </div>
     </div>
     <game-keyboard></game-keyboard>
@@ -379,11 +484,31 @@ this.lingo.game = function (glob) {
                gameRootThis.showHelpModal();
              }));
 
-          this.shadowRoot;
           this.addEventListener("game-key-press", (function(e) {
             var letter = e.detail.key;
             console.log("FROM HEAD GAME" + letter);
           }));
+
+          this.$board = this.shadowRoot.querySelector("#board");
+
+          for (var c = 0; c < 6; c++) {
+            var u = document.createElement("game-row");
+            // u.setAttribute("letters", this.boardState[c]);
+            u.setAttribute("length", 5);
+            // this.evaluations[c] && (u.evaluation = this.evaluations[c]),
+
+            this.$board.appendChild(u)
+          }
+          this.sizeBoard();
+        }
+      }, {
+        key: "sizeBoard",
+        value: function() {
+          console.log("Resizing....");
+          var e = this.shadowRoot.querySelector("#board-container");
+          var a = Math.min(Math.floor(e.clientHeight * (5 / 6)), 350);
+          var s = 6 * Math.floor(a / 5);
+          this.$board.style.width = "".concat(a, "px"), this.$board.style.height = "".concat(s, "px")
         }
       }
     ]);
