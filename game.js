@@ -232,6 +232,10 @@ this.lingo.game = function (glob) {
       color: var(--color-tone-1);
     }
 
+    .tile[data-state='correct'] { background-color: var(--color-correct); }
+    .tile[data-state='present'] { background-color: var(--color-present); }
+    .tile[data-state='absent'] { background-color: var(--color-absent); }
+
     .tile[data-animation='pop'] {
       animation-name: PopIn; animation-duration: 500ms;
     }
@@ -243,6 +247,29 @@ this.lingo.game = function (glob) {
       40% { transform: scale(1.1); opacity: 1;
       }
     }
+
+    .tile[data-animation='flip-in'] {
+      animation-name: FlipIn;
+      animation-duration: 250ms;
+      animation-timing-function: ease-in;
+    }
+
+    @keyframes FlipIn {
+      0% { transform: rotateX(0); }
+      100% { transform: rotateX(-90deg); }
+    }
+
+    .tile[data-animation='flip-out'] {
+      animation-name: FlipOut;
+      animation-duration: 250ms;
+      animation-timing-function: ease-in;
+    }
+
+    @keyframes FlipOut {
+      0% { transform: rotateX(-90deg); }
+      100% { transform: rotateX(0);}
+    }
+
     </style>
     <div class="tile" data-state="empty" data-animation="idle"></div>
   `;
@@ -258,6 +285,8 @@ this.lingo.game = function (glob) {
 
       addKeyValueToDict(NotInitializedError(e), "_letter", "");
       addKeyValueToDict(NotInitializedError(e), "_animation", "idle");
+      addKeyValueToDict(NotInitializedError(e), "_reveal", !1);
+      addKeyValueToDict(NotInitializedError(e), "_animation", "idle");
       return e;
     }
 
@@ -269,6 +298,15 @@ this.lingo.game = function (glob) {
         this.$tile = this.shadowRoot.querySelector(".tile");
         this.$tile.addEventListener("animationend", (function(a) {
           e._anmiation = "idle";
+          if (a.animationName === "") {
+            e._animation = "idle";
+            e._update();
+          } else if (a.animationName === "FlipIn") {
+            e.$tile.dataset.state = e._state;
+            e._animation = "flip-out";
+          } else if (a.animationName === "FlipOut") {
+            e._animation = "idle";
+          }
           e._update();
         }));
       }
@@ -284,6 +322,14 @@ this.lingo.game = function (glob) {
             this._letter = s;
             this._animation = s ? "pop" : "idle";
             break;
+          case "evaluation":
+            if (!s) break;
+            this._state = s;
+            break;
+          case "reveal":
+            this._animation = "flip-in";
+            this._reveal = !0;
+            break;
         }
         this._update();
       }
@@ -293,14 +339,14 @@ this.lingo.game = function (glob) {
         console.log("Updating a letter");
         this.$tile.textContent = this._letter;
         if (["empty", "tbd"].includes(this._state)) {
-          (this.$tile.dataset.state = this._state);
-          this.$tile.dataset.animation = this._animation;
+          this.$tile.dataset.state = this._state;
         }
+        this.$tile.dataset.animation = this._animation;
       }
     }], [{
       key: "observedAttributes",
       get: function() {
-        return ["letter"];
+        return ["letter", "reveal", "evaluation"];
       }
     }]);
 
@@ -331,10 +377,26 @@ this.lingo.game = function (glob) {
       isInstanceOf(this, returnFunction);
       (e = element.call(this)).attachShadow({ mode: "open" });
       e._letters = "";
+      e._evaluation = [];
       return e;
     }
 
     addKeyFunction(returnFunction , [{
+      key: "evaluation",
+      get: function() {
+        return this._evaluation;
+      },
+      set: function(evaluation) {
+        var currentRow = this;
+        this._evaluation = evaluation;
+        this.$tiles.forEach((function(tile, i) {
+          tile.setAttribute("evaluation", currentRow._evaluation[i]);
+          setTimeout((function() {
+            tile.setAttribute("reveal", "");
+          }), 300 * i);
+        }));
+      }
+    },{
       key: "connectedCallback",
       value: function() {
         var e = this;
@@ -700,6 +762,7 @@ this.lingo.game = function (glob) {
           // This will trigger a UI update
           currentRow.evaluation = this.evaluations[this.rowIndex];
           this.rowIndex += 1;
+          this.tileIndex = 0;
         }
       } ,{
         key: "connectedCallback",
