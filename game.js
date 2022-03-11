@@ -204,6 +204,64 @@ this.lingo.game = function (glob) {
     return letterEvaluationDict;
   }
 
+  // Toast
+
+  var toastElement = document.createElement("template");
+  toastElement.innerHTML = `
+  <style>
+    .toast {
+      position: relative;
+      margin: 16px;
+      background-color: var(--color-tone-1);
+      color: var(--color-tone-7);
+      padding: 16px;
+      border: none;
+      border-radius: 4px;
+      opacity: 1;
+      transition: opacity 300ms cubic-bezier(0.645, 0.045, 0.355, 1);
+      font-weight: 700;
+    }
+    .win {
+      background-color: var(--color-correct);
+      color: var(--tile-text-color);
+    }
+    .fade {
+      opacity: 0;
+    }
+  </style>
+  <div class="toast"></div>
+  `;
+  var gameToast = function(htmlElement) {
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+      return e;
+    }
+
+    addKeyFunction(returnFunction , [{
+      key: "connectedCallback",
+      value: function() {
+        var e = this;
+        this.shadowRoot.appendChild(toastElement.content.cloneNode(!0));
+        var toastDiv = this.shadowRoot.querySelector(".toast");
+        toastDiv.textContent = this.getAttribute("text");
+        setTimeout((function () {
+          toastDiv.classList.add("fade");
+        }), 1e3);
+        toastDiv.addEventListener("transitionend", (function (a) {
+          e.parentNode.removeChild(e);
+        }));
+      }
+    }]);
+
+    return returnFunction;
+  }(SomethingElement(HTMLElement));
+  customElements.define("game-toast", gameToast);
+
   // Game board
 
   // Game Tile
@@ -674,6 +732,20 @@ this.lingo.game = function (glob) {
   			display: flex;
   			flex-direction: column;
   		}
+      .toaster {
+        position: absolute;
+        top: 10%;
+        left: 50%;
+        transform: translate(-50%, 0);
+        pointer-events: none;
+        width: fit-content;
+      }
+      #game-toaster {
+        z-index: 1000;
+      }
+      #system-toaster {
+        z-index: 4000;
+      }
     </style>
     <header>
       <div class="menu-left">
@@ -695,6 +767,8 @@ this.lingo.game = function (glob) {
       </div>
     </div>
     <game-keyboard></game-keyboard>
+    <div class="toaster" id="game-toaster"></div>
+    <div class="toaster" id="system-toaster"></div>
   `;
 
   var gameRoot = function (htmlElement) {
@@ -757,6 +831,7 @@ this.lingo.game = function (glob) {
         value: function() {
           console.log("Submiting guess");
           if (5 !== this.tileIndex) { // There isn't five letters in the current row
+            this.addToast("Not enough letters");
             return this.$board.querySelectorAll("game-row")[this.rowIndex].setAttribute("invalid", ""); // set attribute shakes the row
           }
           // void this.addToast("Not enough letters"); // Create a toast with a message
@@ -815,7 +890,20 @@ this.lingo.game = function (glob) {
 
           // this.$keyboard.letterEvaluations = this.letterEvaluations;
         }
-      } ,{
+      }, {
+        key: "addToast",
+        value: function(e, a) {
+          var s = arguments.length > 2 && void 0 !== arguments[2] && arguments[2];
+          var t = document.createElement("game-toast");
+          t.setAttribute("text", e);
+          a && t.setAttribute("duration", a);
+          if (s) {
+            this.shadowRoot.querySelector("#system-toaster").prepend(t);
+          } else {
+            this.shadowRoot.querySelector("#game-toaster").prepend(t);
+          }
+        }
+      }, {
         key: "connectedCallback",
         value: function () {
           var gameRootThis = this;
