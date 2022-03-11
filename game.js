@@ -172,12 +172,37 @@ this.lingo.game = function (glob) {
   var ABSENT = "absent";
   var alphabet = "abcdefghijklmnopqrstuvwxyz";
 
+  var stateOrder = {
+        unknown: 0,
+        absent: 1,
+        present: 2,
+        correct: 3
+    };
+
   // Buttons
   var button = document.createElement("template");
   button.innerHTML = "<button>key</button>\n";
 
   var spacer = document.createElement("template");
     spacer.innerHTML = `<div class="spacer"></div>`;
+
+  // Store letter evaluation - used to color the keyboard
+
+  function buildLetterEvaluation(boardState, evaluations) {
+    var letterEvaluationDict = {};
+    boardState.forEach((function(e, index) {
+      if (evaluations[index]) {
+        for (var j = 0; j < e.length; j++) {
+          var o = e[j];
+          var r = evaluations[index][j];
+          var i = letterEvaluationDict[o] || "unknown";
+          if (stateOrder[r] > stateOrder[i]) {
+            letterEvaluationDict[o] = r;
+          }
+        }}
+      }));
+    return letterEvaluationDict;
+  }
 
   // Game board
 
@@ -575,10 +600,12 @@ this.lingo.game = function (glob) {
       addKeyValueToDict(NotInitializedError(e), "tileIndex", 0);
       addKeyValueToDict(NotInitializedError(e), "rowIndex", 0);
       addKeyValueToDict(NotInitializedError(e), "boardState", void 0);
+      addKeyValueToDict(NotInitializedError(e), "evaluations", void 0);
       addKeyValueToDict(NotInitializedError(e), "solution", "erode");
 
       // Most state is stored in the game-root element
       e.boardState = new Array(6).fill("");
+      e.evaluations = new Array(6).fill(null)
 
       return e;
     }
@@ -666,6 +693,13 @@ this.lingo.game = function (glob) {
 
           console.log(result);
 
+          this.evaluations[this.rowIndex] = result;
+          this.letter_evaluations = buildLetterEvaluation(
+            this.boardState, this.evaluations
+          );
+          // This will trigger a UI update
+          currentRow.evaluation = this.evaluations[this.rowIndex];
+          this.rowIndex += 1;
         }
       } ,{
         key: "connectedCallback",
