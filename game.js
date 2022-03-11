@@ -156,11 +156,20 @@ this.lingo.game = function (glob) {
 
   // Building the game
 
+  var AllWords = ["cigar", "rebut", "sissy", "humph", "awake", "blush",
+    "focal", "evade", "naval", "serve", "heath", "dwarf", "erode", "world"];
+  var Solutions = ["cigar", "rebut", "sissy", "humph", "awake", "blush",
+    "focal", "evade", "naval", "serve", "heath", "dwarf", "erode", "world"];
+
+
   var keyboardLetterPattern = [
     ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
     ["-", "a", "s", "d", "f", "g", "h", "j", "k", "l", "-"],
     ["ENTER", "z", "x", "c", "v", "b", "n", "m", "BACK"]
   ];
+  var PRESENT = "present";
+  var CORRECT = "correct";
+  var ABSENT = "absent";
   var alphabet = "abcdefghijklmnopqrstuvwxyz";
 
   // Buttons
@@ -566,6 +575,7 @@ this.lingo.game = function (glob) {
       addKeyValueToDict(NotInitializedError(e), "tileIndex", 0);
       addKeyValueToDict(NotInitializedError(e), "rowIndex", 0);
       addKeyValueToDict(NotInitializedError(e), "boardState", void 0);
+      addKeyValueToDict(NotInitializedError(e), "solution", "erode");
 
       // Most state is stored in the game-root element
       e.boardState = new Array(6).fill("");
@@ -608,6 +618,54 @@ this.lingo.game = function (glob) {
         key: "submitGuess",
         value: function() {
           console.log("Submiting guess");
+          if (5 !== this.tileIndex) { // There isn't five letters in the current row
+            return this.$board.querySelectorAll("game-row")[this.rowIndex].setAttribute("invalid", ""); // set attribute shakes the row
+          }
+          // void this.addToast("Not enough letters"); // Create a toast with a message
+          this.evaluateRow();
+        }
+      }, {
+        key: "evaluateRow",
+        value: function() {
+          // Get the current row
+          var currentRow = this.$board.querySelectorAll("game-row")[this.rowIndex];
+          var currentString = this.boardState[this.rowIndex]; // current string to be evaluated
+          if (currentString && !AllWords.includes(currentString) && !Solutions.includes(currentString)) {
+            // Not in either word list
+            // this.addToast("Not in word list");
+            return currentRow.setAttribute("invalid", "");
+          }
+
+          var result = function(guess, solution) {
+            var result = Array(solution.length).fill(ABSENT);
+            var notCorrect = Array(solution.length).fill(!0);
+            var notPresent = Array(solution.length).fill(!0);
+            // Check for correct letters
+            for (var o = 0; o < guess.length; o++) {
+              if (guess[o] === solution[o] && notCorrect[o]) {
+                result[o] = CORRECT;
+                notCorrect[o] = !1;
+                notPresent[o] = !1;
+              }
+            }
+
+            for (var r = 0; r < guess.length; r++) {
+              var i = guess[r];
+              if (notCorrect[r])
+              for (var l = 0; l < solution.length; l++) {
+                var d = solution[l];
+                if (notPresent[l] && i === d) {
+                  result[r] = PRESENT;
+                  notPresent[l] = !1;
+                  break;
+                }
+              }
+            }
+            return result;
+          }(currentString, this.solution);
+
+          console.log(result);
+
         }
       } ,{
         key: "connectedCallback",
