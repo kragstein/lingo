@@ -488,6 +488,19 @@ this.lingo.game = function (glob) {
       }
       .half {    flex: 0.5;  }
       .one-and-a-half {    flex: 1.5;  }
+
+      button[data-state='correct'] {
+        background-color: var(--key-bg-correct);
+        color: var(--key-evaluated-text-color);
+      }
+      button[data-state='present'] {
+        background-color: var(--key-bg-present);
+        color: var(--key-evaluated-text-color);
+      }
+      button[data-state='absent'] {
+        background-color: var(--key-bg-absent);
+        color: var(--key-evaluated-text-color);
+      }
     </style>
     <div id="keyboard"></div>
   `;
@@ -505,6 +518,21 @@ this.lingo.game = function (glob) {
     }
 
     addKeyFunction(returnFunction , [{
+      key: "letterEvaluations",
+      set: function(e) {
+        this._letterEvaluations = e;
+        this._update();
+      }
+    }, {
+      key: "_update",
+      value: function() {
+        for (var e in this._letterEvaluations) {
+          var a = this.$keyboard.querySelector('[data-key="'.concat(e, '"]'));
+          a.dataset.state = this._letterEvaluations[e];
+          a.classList.add("fade");
+        }
+      }
+    }, {
       key: "dispatchKeyPressEvent",
       value: function(e) {
         this.dispatchEvent(new CustomEvent("game-key-press", {
@@ -663,6 +691,7 @@ this.lingo.game = function (glob) {
       addKeyValueToDict(NotInitializedError(e), "rowIndex", 0);
       addKeyValueToDict(NotInitializedError(e), "boardState", void 0);
       addKeyValueToDict(NotInitializedError(e), "evaluations", void 0);
+      addKeyValueToDict(NotInitializedError(e), "$keyboard", void 0);
       addKeyValueToDict(NotInitializedError(e), "solution", "erode");
 
       // Most state is stored in the game-root element
@@ -756,13 +785,15 @@ this.lingo.game = function (glob) {
           console.log(result);
 
           this.evaluations[this.rowIndex] = result;
-          this.letter_evaluations = buildLetterEvaluation(
+          this.letterEvaluations = buildLetterEvaluation(
             this.boardState, this.evaluations
           );
           // This will trigger a UI update
           currentRow.evaluation = this.evaluations[this.rowIndex];
           this.rowIndex += 1;
           this.tileIndex = 0;
+
+          this.$keyboard.letterEvaluations = this.letterEvaluations;
         }
       } ,{
         key: "connectedCallback",
@@ -786,6 +817,7 @@ this.lingo.game = function (glob) {
           }));
 
           this.$board = this.shadowRoot.querySelector("#board");
+					this.$keyboard = this.shadowRoot.querySelector("game-keyboard");
 
           for (var c = 0; c < 6; c++) {
             var u = document.createElement("game-row");
