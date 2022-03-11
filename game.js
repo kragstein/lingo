@@ -287,10 +287,17 @@ this.lingo.game = function (glob) {
       addKeyValueToDict(NotInitializedError(e), "_animation", "idle");
       addKeyValueToDict(NotInitializedError(e), "_reveal", !1);
       addKeyValueToDict(NotInitializedError(e), "_animation", "idle");
+      addKeyValueToDict(NotInitializedError(e), "_last", !1);
       return e;
     }
 
-    addKeyFunction(returnFunction , [{
+    addKeyFunction(returnFunction , [
+      {
+        key: "last",
+        set: function(e) {
+          this._last = e;
+        }
+			}, {
       key: "connectedCallback",
       value: function() {
         var e = this;
@@ -306,6 +313,12 @@ this.lingo.game = function (glob) {
             e._animation = "flip-out";
           } else if (a.animationName === "FlipOut") {
             e._animation = "idle";
+            if (e._last) {
+              e.dispatchEvent(new CustomEvent("game-last-tile-revealed-in-row", {
+                bubbles: !0,
+                composed: !0
+              }));
+            }
           }
           e._update();
         }));
@@ -404,6 +417,10 @@ this.lingo.game = function (glob) {
         this.$row = this.shadowRoot.querySelector(".row")
         for (var count = 0; count < 5 /* this._length */; count++) {
           var tile = document.createElement("game-tile");
+          if (count === 4) {
+            // last tile gets the attribute set
+            tile.last = !0;
+          }
           this.$row.appendChild(tile);
         }
         this.$tiles = this.shadowRoot.querySelectorAll("game-tile");
@@ -500,6 +517,9 @@ this.lingo.game = function (glob) {
       button[data-state='absent'] {
         background-color: var(--key-bg-absent);
         color: var(--key-evaluated-text-color);
+      }
+      button.fade {
+        transition: background-color 0.1s ease, color 0.1s ease;
       }
     </style>
     <div id="keyboard"></div>
@@ -793,7 +813,7 @@ this.lingo.game = function (glob) {
           this.rowIndex += 1;
           this.tileIndex = 0;
 
-          this.$keyboard.letterEvaluations = this.letterEvaluations;
+          // this.$keyboard.letterEvaluations = this.letterEvaluations;
         }
       } ,{
         key: "connectedCallback",
@@ -815,6 +835,12 @@ this.lingo.game = function (glob) {
               this.addLetter(letter);
             }
           }));
+
+          this.addEventListener("game-last-tile-revealed-in-row",
+            (function(e) {
+              gameRootThis.$keyboard.letterEvaluations =
+                gameRootThis.letterEvaluations;
+            }));
 
           this.$board = this.shadowRoot.querySelector("#board");
 					this.$keyboard = this.shadowRoot.querySelector("game-keyboard");
