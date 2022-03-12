@@ -213,6 +213,7 @@ this.lingo.game = function (glob) {
       help: "0 0 22 22",
       settings: "0 0 45 45",
       graph: "0 0 300 300",
+      reload: "0 0 500 500",
     };
 
     var iconPaths = {
@@ -261,6 +262,14 @@ this.lingo.game = function (glob) {
         1.958-3.182A3.937 3.937 0 0 0 12 6zm-1 10h2v2h-2z M12 2C6.486 2 2 6.486
         2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589
         -8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z
+      `,
+      reload: `
+        M268.175,488.161c98.2-11,176.9-89.5,188.1-187.7c14.7-128.4-85.1-237.7
+        -210.2-239.1v-57.6c0-3.2-4-4.9-6.7-2.9 l-118.6,87.1c-2,1.5-2,4.4,0,5.9
+        l118.6,87.1c2.7,2,6.7,0.2,6.7-2.9v-57.5c87.9,1.4,158.3,76.2,152.3,165.6
+		    c-5.1,76.9-67.8,139.3-144.7,144.2c-81.5,5.2-150.8-53-163.2-130c-2.3
+        -14.3-14.8-24.7-29.2-24.7c-17.9,0-31.9,15.9-29.1,33.6 C49.575,418.961,
+        150.875,501.261,268.175,488.161z
       `,
     };
 
@@ -730,6 +739,15 @@ this.lingo.game = function (glob) {
         }
       }
     }, {
+      key: "reload",
+      value: function() {
+        this._letterEvaluations = {};
+        for (const letter of alphabet) {
+          var a = this.$keyboard.querySelector('[data-key="'.concat(letter, '"]'));
+          a.removeAttribute("data-state");
+        }
+      }
+    }, {
       key: "dispatchKeyPressEvent",
       value: function(e) {
         this.dispatchEvent(new CustomEvent("game-key-press", {
@@ -883,6 +901,9 @@ this.lingo.game = function (glob) {
 			</div>
       <div class="title">Lingo</div>
       <div class="menu-right">
+        <button id="reload-button" class="icon" aria-label="Statistics" tabindex="-1">
+          <game-icon icon="reload"></game-icon>
+        </button>
 				<button id="statistics-button" class="icon" aria-label="Statistics" tabindex="-1">
 					<game-icon icon="settings"></game-icon>
 				</button>
@@ -915,6 +936,7 @@ this.lingo.game = function (glob) {
       addKeyValueToDict(NotInitializedError(e), "evaluations", void 0);
       addKeyValueToDict(NotInitializedError(e), "$keyboard", void 0);
       addKeyValueToDict(NotInitializedError(e), "solution", "erode");
+      addKeyValueToDict(NotInitializedError(e), "letterEvaluations", void 0);
 
       // Most state is stored in the game-root element
       e.boardState = new Array(6).fill("");
@@ -932,6 +954,21 @@ this.lingo.game = function (glob) {
         key: "showHelpModal",
         value: function () {
           console.log("help");
+        }
+      }, {
+        key: "reload",
+        value: function() {
+          this.boardState = new Array(6).fill("");
+          var rows = this.$board.querySelectorAll("game-row");
+          rows.forEach(function (row) {
+            row.removeAttribute("letters");
+          });
+          this.solution = intToWord(
+            solutions[Math.floor(Math.random()*solutions.length)]);
+          this.rowIndex = 0;
+          this.letterEvaluations = {};
+          this.$keyboard.reload();
+          console.log(this.solution);
         }
       }, {
         key: "addLetter",
@@ -1042,6 +1079,10 @@ this.lingo.game = function (glob) {
              addEventListener("click", (function(e) {
                gameRootThis.showHelpModal();
              }));
+           this.shadowRoot.getElementById("reload-button").
+              addEventListener("click", (function(e) {
+                gameRootThis.reload();
+              }));
 
           this.addEventListener("game-key-press", (function(e) {
             var letter = e.detail.key;
