@@ -179,6 +179,66 @@ this.lingo.game = function (glob) {
         correct: 3
     };
 
+    // Visualize paths:
+    // https://svg-path-visualizer.netlify.app
+    // Find paths
+    // https://www.svgrepo.com/
+
+    var iconSizes = {
+      help: "0 0 22 22",
+      settings: "0 0 45 45",
+      graph: "0 0 300 300",
+    };
+
+    var iconPaths = {
+      graph: `M287.183,243.393l-27.577-27.577c-5.857-5.857-15.355-5.857-21.213,0
+        c-5.858,5.857-5.858,15.355,0,21.213l1.971,1.971 H62.577V51.212l1.971,
+        1.971c5.858,5.859,15.355,5.858,21.213,0c5.858-5.857,5.858-15.355,0
+        -21.213L58.183,4.393 c-5.857-5.857-15.355-5.857-21.213,0L9.393,31.97
+        c-5.858,5.857-5.858,15.355,0,21.213c5.857,5.858,15.355,5.858,21.213,0
+        l1.971-1.971V254c0,8.284,6.716,15,15,15h192.787l-1.971,1.971c-5.858,
+        5.857-5.858,15.355,0,21.213 c5.858,5.859,15.355,5.858,21.213,0l27.577
+        -27.577C293.042,258.749,293.042,249.25,287.183,243.393z M103.089,
+        183.288c-8.284,0-15,6.716-15,15c0,8.284,6.716,15,15,15h98c8.284,0,15
+        -6.716,15-15c0-8.284-6.716-15-15-15 H103.089z M103.089,88.288h76c8.284,
+        0,15-6.716,15-15c0-8.284-6.716-15-15-15h-76c-8.284,0-15,6.716-15,15
+        C88.089,81.572,94.804,88.288,103.089,88.288z M88.089,135.788c0,8.284,
+        6.716,15,15,15h165c8.284,0,15-6.716,15-15c0-8.284-6.716-15-15-15h-165
+        C94.804,120.788,88.089,127.503,88.089,135.788z`,
+      settings: `
+        M43.454,18.443h-2.437c-0.453-1.766-1.16-3.42-2.082-4.933l1.752-1.756
+        c0.473-0.473,0.733-1.104,0.733-1.774 c0-0.669-0.262-1.301-0.733-1.773
+        l-2.92-2.917c-0.947-0.948-2.602-0.947-3.545-0.001l-1.826,1.815
+        C30.9,6.232,29.296,5.56,27.529,5.128V2.52c0-1.383-1.105-2.52-2.488-2.52
+        h-4.128c-1.383,0-2.471,1.137-2.471,2.52v2.607  c-1.766,0.431-3.38,1.104
+        -4.878,1.977l-1.825-1.815c-0.946-0.948-2.602-0.947-3.551-0.001L5.27,
+        8.205 C4.802,8.672,4.535,9.318,4.535,9.978c0,0.669,0.259,1.299,0.733,
+        1.772l1.752,1.76c-0.921,1.513-1.629,3.167-2.081,4.933H2.501 C1.117,
+        18.443,0,19.555,0,20.935v4.125c0,1.384,1.117,2.471,2.501,2.471h2.438
+        c0.452,1.766,1.159,3.43,2.079,4.943l-1.752,1.763 c-0.474,0.473-0.734,
+        1.106-0.734,1.776s0.261,1.303,0.734,1.776l2.92,2.919c0.474,0.473,1.103,
+        0.733,1.772,0.733 s1.299-0.261,1.773-0.733l1.833-1.816c1.498,0.873,
+        3.112,1.545,4.878,1.978v2.604c0,1.383,1.088,2.498,2.471,2.498h4.128
+        c1.383,0,2.488-1.115,2.488-2.498v-2.605c1.767-0.432,3.371-1.104,4.869
+        -1.977l1.817,1.812c0.474,0.475,1.104,0.735,1.775,0.735 c0.67,0,1.301
+        -0.261,1.774-0.733l2.92-2.917c0.473-0.472,0.732-1.103,0.734-1.772
+        c0-0.67-0.262-1.299-0.734-1.773l-1.75-1.77 c0.92-1.514,1.627-3.179,
+        2.08-4.943h2.438c1.383,0,2.52-1.087,2.52-2.471v-4.125C45.973,19.555,
+        44.837,18.443,43.454,18.443z M22.976,30.85c-4.378,0-7.928-3.517-7.928
+        -7.852c0-4.338,3.55-7.85,7.928-7.85c4.379,0,7.931,3.512,7.931,7.85
+        C30.906,27.334,27.355,30.85,22.976,30.85z
+      `,
+      help: `
+        M12 6a3.939 3.939 0 0 0-3.934 3.934h2C10.066 8.867 10.934 8 12 8
+        s1.934.867 1.934 1.934c0 .598-.481 1.032-1.216 1.626a9.208 9.208 0 0 0
+        -.691.599c-.998.997-1.027 2.056-1.027 2.174V15h2l-.001-.633c.001
+        -.016.033-.386.441-.793.15-.15.339-.3.535-.458.779-.631 1.958-1.584
+        1.958-3.182A3.937 3.937 0 0 0 12 6zm-1 10h2v2h-2z M12 2C6.486 2 2 6.486
+        2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589
+        -8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z
+      `,
+    };
+
   // Buttons
   var button = document.createElement("template");
   button.innerHTML = "<button>key</button>\n";
@@ -203,6 +263,41 @@ this.lingo.game = function (glob) {
       }));
     return letterEvaluationDict;
   }
+
+  // Icons
+
+  var iconElement = document.createElement("template");
+  iconElement.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 50 50" width="24">
+      <path fill=var(--color-tone-1) />
+    </svg>
+  `;
+
+  var icon = function(htmlElement) {
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+      return e;
+    }
+
+    addKeyFunction(returnFunction , [{
+      key: "connectedCallback",
+      value: function() {
+        this.shadowRoot.appendChild(iconElement.content.cloneNode(!0));
+        var e = this.getAttribute("icon");
+        this.shadowRoot.querySelector("path").setAttribute("d", iconPaths[e]);
+        this.shadowRoot.querySelector("svg").setAttribute("viewBox", iconSizes[e]);
+      }
+    }]);
+
+    return returnFunction;
+  }(SomethingElement(HTMLElement));
+
+  customElements.define("game-icon", icon);
 
   // Toast
 
@@ -724,6 +819,12 @@ this.lingo.game = function (glob) {
   			padding:10px;
   			box-sizing: border-box;
   		}
+      button.icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0 4px;
+      }
       game-keyboard {
   			width: 100%;
   			max-width: var(--game-max-width);
@@ -750,13 +851,16 @@ this.lingo.game = function (glob) {
     <header>
       <div class="menu-left">
 				<button id="help-button" class="icon" aria-label="Help" tabindex="-1">
-					?
+					<game-icon icon="graph"></game-icon>
+				</button>
+        <button id="test-button" class="icon" aria-label="Help" tabindex="-1">
+					<game-icon icon="help"></game-icon>
 				</button>
 			</div>
       <div class="title">Lingo</div>
       <div class="menu-right">
 				<button id="statistics-button" class="icon" aria-label="Statistics" tabindex="-1">
-					S
+					<game-icon icon="settings"></game-icon>
 				</button>
 			</div>
     </header>
