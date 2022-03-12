@@ -559,10 +559,22 @@ this.lingo.game = function (glob) {
   var gameRowElement = document.createElement("template");
   gameRowElement.innerHTML = `
     <style>
-    :host { display: block; }
-    .row {
-      display: grid; grid-template-columns: repeat(5, 1fr); grid-gap: 5px;
-    }
+      :host { display: block; }
+      .row {
+        display: grid; grid-template-columns: repeat(5, 1fr); grid-gap: 5px;
+      }
+      :host([invalid]) { animation-name: Shake; animation-duration: 600ms; }
+      @keyframes Shake {
+        10%,
+        90% { transform: translateX(-1px); }
+        20%,
+        80% { transform: translateX(2px); }
+        30%,
+        50%,
+        70% { transform: translateX(-4px); }
+        40%,
+        60% { transform: translateX(4px); }
+      }
     </style>
     <div class="row"></div>
   `;
@@ -610,6 +622,10 @@ this.lingo.game = function (glob) {
           this.$row.appendChild(tile);
         }
         this.$tiles = this.shadowRoot.querySelectorAll("game-tile");
+
+        this.addEventListener("animationend", (function(a) {
+          "Shake" === a.animationName && e.removeAttribute("invalid");
+        }));
       }
     }, {
       key: "attributeChangedCallback",
@@ -1014,8 +1030,9 @@ this.lingo.game = function (glob) {
               !allWords.includes(wordToInt(currentString)) &&
               !solutions.includes(wordToInt(currentString))) {
             // Not in either word list
-            // this.addToast("Not in word list");
+            this.addToast("Not in word list");
             return currentRow.setAttribute("invalid", "");
+
           }
 
           var result = function(guess, solution) {
