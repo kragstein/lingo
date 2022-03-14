@@ -214,6 +214,7 @@ this.lingo.game = function (glob) {
       settings: "0 0 45 45",
       graph: "0 0 300 300",
       reload: "0 0 500 500",
+      close: "0 0 22 22",
     };
 
     var iconPaths = {
@@ -271,6 +272,10 @@ this.lingo.game = function (glob) {
         -14.3-14.8-24.7-29.2-24.7c-17.9,0-31.9,15.9-29.1,33.6 C49.575,418.961,
         150.875,501.261,268.175,488.161z
       `,
+      close: `M13.41 12l4.3-4.29a1 1 0 1 0-1.42-1.42L12 10.59l-4.29-4.3a1 1 0 0
+        0-1.42 1.42l4.3 4.29-4.3 4.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l4.29
+        -4.3 4.29 4.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42z
+      `
     };
 
   // Buttons
@@ -475,6 +480,7 @@ this.lingo.game = function (glob) {
       addKeyValueToDict(NotInitializedError(e), "_reveal", !1);
       addKeyValueToDict(NotInitializedError(e), "_animation", "idle");
       addKeyValueToDict(NotInitializedError(e), "_last", !1);
+      addKeyValueToDict(NotInitializedError(e), "$tile", !1);
       return e;
     }
 
@@ -509,6 +515,7 @@ this.lingo.game = function (glob) {
           }
           e._update();
         }));
+        e._update();
       }
     }, {
       key: "attributeChangedCallback",
@@ -536,11 +543,14 @@ this.lingo.game = function (glob) {
     }, {
       key: "_update",
       value: function () {
-        this.$tile.textContent = this._letter;
-        if (["empty", "tbd"].includes(this._state)) {
-          this.$tile.dataset.state = this._state;
+        var e = this;
+        if (e.$tile) {
+          e.$tile.textContent = e._letter;
+          if (["empty", "tbd"].includes(e._state)) {
+            e.$tile.dataset.state = e._state;
+          }
+          e.$tile.dataset.animation = e._animation;
         }
-        this.$tile.dataset.animation = this._animation;
       }
     }], [{
       key: "observedAttributes",
@@ -829,6 +839,351 @@ this.lingo.game = function (glob) {
 
   customElements.define("game-keyboard", keyboard);
 
+  // Modal display
+
+  var gameModalElement = document.createElement("template");
+	gameModalElement.innerHTML = `
+		<style>
+			.overlay {
+				display: none;
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				top: 0;
+				left: 0;
+				justify-content: center;
+				align-items: center;
+				background-color: var(--opacity-50);
+				z-index: 3000;
+			}
+			:host([open])
+			.overlay { display: flex; }
+			.content {
+				position: relative;
+				border-radius: 8px;
+				border: 1px solid var(--color-tone-6);
+				background-color: var(--modal-content-bg);
+				color: var(--color-tone-1);
+				box-shadow: 0 4px 23px 0 rgba(0, 0, 0, 0.2);
+				width: 90%;
+				max-height: 90%;
+				overflow-y: auto;
+				animation: SlideIn 200ms;
+				max-width: var(--game-max-width);
+				padding: 16px;
+				box-sizing: border-box;
+			}
+			.content.closing {
+				animation: SlideOut 200ms;
+			}
+			.close-icon {
+				width: 24px;
+				height: 24px;
+				position: absolute;
+				top: 16px;
+				right: 16px;
+			}
+			game-icon {
+				position: fixed;
+				user-select: none;
+				cursor: pointer;
+			}
+			@keyframes SlideIn {
+				0% {
+					transform: translateY(30px);
+					opacity: 0;
+				}
+				100% {
+					transform: translateY(0px);
+					opacity: 1;
+				}
+			}
+			@keyframes SlideOut {
+				0% {
+					transform: translateY(0px);
+					opacity: 1;
+				}
+				90% {
+					opacity: 0;
+				}
+				100% {
+					opacity: 0;
+					transform: translateY(60px);
+				}
+			}
+		</style>
+		<div class="overlay">
+			<div class="content">
+				<slot></slot>
+				<div class="close-icon">
+					<game-icon icon="close"></game-icon>
+				</div>
+			</div>
+		</div>
+
+    `;
+
+
+
+  var gameModal = function(htmlElement) {
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+      return e;
+    }
+
+    addKeyFunction(returnFunction , [{
+      key: "connectedCallback",
+      value: function() {
+        var e = this;
+        this.shadowRoot.appendChild(gameModalElement.content.cloneNode(!0));
+        this.addEventListener("click", (function(a) {
+          e.shadowRoot.querySelector(".content").classList.add("closing")
+        }));
+        this.shadowRoot.addEventListener("animationend", (function(a) {
+          "SlideOut" === a.animationName &&
+          (e.shadowRoot.querySelector(".content").classList.remove("closing"),
+          e.removeChild(e.firstChild), e.removeAttribute("open"))
+        }));
+      }
+    }]);
+    return returnFunction;
+  }(SomethingElement(HTMLElement));
+  customElements.define("game-modal", gameModal);
+
+  // Full page menu
+
+  var fullPageElement = document.createElement("template");
+    fullPageElement.innerHTML = `
+	<style>
+		.overlay {
+			display: none;
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			top: 0;
+			left: 0;
+			justify-content: center;
+			background-color: var(--color-background);
+			animation: SlideIn 100ms linear;
+			z-index: `.concat(2e3, `;
+		}
+		:host([open]) .overlay {
+			display: flex;
+		}
+		.content {
+			position: relative;
+			color: var(--color-tone-1);
+			padding: 0 32px;
+			max-width: var(--game-max-width);
+			width: 100%;
+			overflow-y: auto;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+		}
+		.content-container {
+			height: 100%;
+		}
+		.overlay.closing {
+			animation: SlideOut 150ms linear;
+		}
+		header {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			position: relative;
+		}
+		h1 {
+			font-weight: 700;
+			font-size: 16px;
+			letter-spacing: 0.5px;
+			text-transform: uppercase;
+			text-align: center;
+			margin-bottom: 10px;
+		}
+		game-icon {
+			position: absolute;
+			right: 0;
+      top: 10px;
+			user-select: none;
+			cursor: pointer;
+		}
+		@media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+			.content {
+				max-width: 100%;
+				padding: 0;
+			}
+			game-icon {
+				padding: 0 16px;
+			}
+		}
+		@keyframes SlideIn {
+			0% {
+				transform: translateY(30px);
+				opacity: 0;
+			}
+			100% {
+				transform: translateY(0px);
+				opacity: 1;
+			}
+		}
+		@keyframes SlideOut {
+			0% {
+				transform: translateY(0px);
+				opacity: 1;
+			}
+			90% {
+				opacity: 0;
+			}
+			100% {
+				opacity: 0;
+				transform: translateY(60px);
+			}
+		}
+	</style>
+	<div class="overlay">
+		<div class="content">
+			<header>
+				<slot></slot>
+				<game-icon icon="close"></game-icon>
+			</header>
+			<div class="content-container">
+				<slot name="content"></slot>
+			</div>
+		</div>
+	</div>`);
+
+  var fullPage = function(htmlElement) {
+
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+      return e;
+    }
+
+    addKeyFunction(returnFunction, [{
+            key: "connectedCallback",
+            value: function() {
+                var e = this;
+                this.shadowRoot.appendChild(fullPageElement.content.cloneNode(!0)),
+				this.shadowRoot.querySelector("game-icon").addEventListener("click",
+					(function(a) {
+						e.shadowRoot.querySelector(".overlay").classList.add("closing")
+                })),
+				this.shadowRoot.addEventListener("animationend", (function(a) {
+                    "SlideOut" === a.animationName &&
+						(e.shadowRoot.querySelector(".overlay").classList.remove("closing"), Array.from(e.childNodes).forEach((function(a) {
+                        e.removeChild(a)
+                    })), e.removeAttribute("open"))
+                }))
+            }
+        }]);
+		return returnFunction;
+    }(SomethingElement(HTMLElement));
+    customElements.define("full-page", fullPage);
+
+  // Help menu
+
+  var helpElement = document.createElement("template");
+  helpElement.innerHTML = `
+  <style>
+  .instructions {
+    font-size: 14px;
+    color: var(--color-tone-1)
+  }
+  .examples {
+    border-bottom: 1px solid var(--color-tone-4);
+    border-top: 1px solid var(--color-tone-4);
+  }
+  .example {
+    margin-top: 24px;
+    margin-bottom: 24px;
+  }
+  game-tile {
+    width: 40px;
+    height: 40px;
+  }
+  :host([page]) section {
+    padding: 16px;
+    padding-top: 0px;
+  }
+</style>
+<section>
+  <h1>How to Lingo</h1>
+  <div class="instructions">
+    <p>Guess the word in six tries.</p>
+    <p>Each guess must be a valid five-letter word. Hit the enter button to submit.</p>
+    <p>After each guess, the color of the tiles will change to show how close your guess was to the word.</p>
+    <div class="examples">
+      <p><strong>Examples</strong></p>
+      <div class="example">
+        <div class="row">
+          <game-tile letter="c" evaluation="correct" reveal></game-tile>
+          <game-tile letter="h"></game-tile>
+          <game-tile letter="e"></game-tile>
+          <game-tile letter="e"></game-tile>
+          <game-tile letter="r"></game-tile>
+        </div>
+        <p>The letter <strong>C</strong> is in the word and in the correct spot.</p>
+      </div>
+      <div class="example">
+        <div class="row">
+          <game-tile letter="p"></game-tile>
+          <game-tile letter="r" evaluation="present" reveal></game-tile>
+          <game-tile letter="o"></game-tile>
+          <game-tile letter="x"></game-tile>
+          <game-tile letter="y"></game-tile>
+        </div>
+        <p>The letter <strong>R</strong> is in the word but in the wrong spot.</p>
+      </div>
+      <div class="example">
+        <div class="row">
+          <game-tile letter="b"></game-tile>
+          <game-tile letter="e"></game-tile>
+          <game-tile letter="a"></game-tile>
+          <game-tile letter="t" evaluation="absent" reveal></game-tile>
+          <game-tile letter="s"></game-tile>
+        </div>
+        <p>The letter <strong>T</strong> is not in the word in any spot.</p>
+      </div>
+    </div>
+    <p>Click on the <game-icon style="margin-bottom: -7px;" icon="reload"></game-icon> to get a new word!</p>
+  </div>
+</section>
+  `;
+
+  var help = function(htmlElement) {
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+      return e;
+    }
+
+    addKeyFunction(returnFunction , [{
+      key: "connectedCallback",
+      value: function() {
+        console.log("Connected callback");
+        this.shadowRoot.appendChild(helpElement.content.cloneNode(!0));
+      }
+    }]);
+
+    return returnFunction;
+  }(SomethingElement(HTMLElement));
+  customElements.define("game-help", help);
+
   // Game root
 
   var gameRootElement = document.createElement("template");
@@ -908,10 +1263,10 @@ this.lingo.game = function (glob) {
     </style>
     <header>
       <div class="menu-left">
-				<button id="help-button" class="icon" aria-label="Help" tabindex="-1">
+				<button id="test-button" class="icon" aria-label="Help" tabindex="-1">
 					<game-icon icon="graph"></game-icon>
 				</button>
-        <button id="test-button" class="icon" aria-label="Help" tabindex="-1">
+        <button id="help-button" class="icon" aria-label="Help" tabindex="-1">
 					<game-icon icon="help"></game-icon>
 				</button>
 			</div>
@@ -934,6 +1289,8 @@ this.lingo.game = function (glob) {
     <game-keyboard></game-keyboard>
     <div class="toaster" id="game-toaster"></div>
     <div class="toaster" id="system-toaster"></div>
+    <game-modal></game-modal>
+    <full-page></full-page>
   `;
 
   var gameRoot = function (htmlElement) {
@@ -951,6 +1308,8 @@ this.lingo.game = function (glob) {
       addKeyValueToDict(NotInitializedError(e), "boardState", void 0);
       addKeyValueToDict(NotInitializedError(e), "evaluations", void 0);
       addKeyValueToDict(NotInitializedError(e), "$keyboard", void 0);
+      addKeyValueToDict(NotInitializedError(e), "$board", void 0);
+      addKeyValueToDict(NotInitializedError(e), "$game", void 0);
       addKeyValueToDict(NotInitializedError(e), "solution", "erode");
       addKeyValueToDict(NotInitializedError(e), "letterEvaluations", void 0);
 
@@ -969,7 +1328,10 @@ this.lingo.game = function (glob) {
       {
         key: "showHelpModal",
         value: function () {
-          console.log("help");
+          // var modalDiv = this.querySelector("#game-help");
+          var modalDiv = this.shadowRoot.querySelector("full-page")
+          modalDiv.appendChild(document.createElement("game-help"));
+          modalDiv.setAttribute("open", "");
         }
       }, {
         key: "reload",
@@ -1120,6 +1482,7 @@ this.lingo.game = function (glob) {
 
           this.$board = this.shadowRoot.querySelector("#board");
 					this.$keyboard = this.shadowRoot.querySelector("game-keyboard");
+          // this.$game = this.shadowRoot.querySelector("game-root");
 
           for (var c = 0; c < 6; c++) {
             var u = document.createElement("game-row");
