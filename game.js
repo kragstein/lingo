@@ -187,7 +187,8 @@ this.lingo.game = function (glob) {
 
     function intToWord(val) {
       var result = "";
-      for (var i = log(26, val); i > 0; i--) {
+      var i = 5; // This eats the a at word end : log(26, val);
+      for (i ; i > 0; i--) {
         var letterValue = Math.floor(val / (26**(i-1)));
         val -= letterValue * (26**(i-1));
         result = String.fromCharCode(97 + letterValue) + result;
@@ -1184,6 +1185,45 @@ this.lingo.game = function (glob) {
   }(SomethingElement(HTMLElement));
   customElements.define("game-help", help);
 
+  // Game win menu
+
+  var gameWinElement = document.createElement("template");
+  gameWinElement.innerHTML = `
+    <style>
+      #results {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+    <div id="results">
+      <h1>WIN !</h1>
+    </div>
+  `;
+
+  var gameWin = function(htmlElement) {
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+      return e;
+    }
+
+    addKeyFunction(returnFunction , [{
+      key: "connectedCallback",
+      value: function() {
+        console.log("Connected callback");
+        this.shadowRoot.appendChild(gameWinElement.content.cloneNode(!0));
+      }
+    }]);
+
+    return returnFunction;
+  }(SomethingElement(HTMLElement));
+  customElements.define("game-win", gameWin);
+
   // Game root
 
   var gameRootElement = document.createElement("template");
@@ -1312,6 +1352,7 @@ this.lingo.game = function (glob) {
       addKeyValueToDict(NotInitializedError(e), "$game", void 0);
       addKeyValueToDict(NotInitializedError(e), "solution", "erode");
       addKeyValueToDict(NotInitializedError(e), "letterEvaluations", void 0);
+      addKeyValueToDict(NotInitializedError(e), "currentString", void 0);
 
       // Most state is stored in the game-root element
       e.boardState = new Array(6).fill("");
@@ -1387,10 +1428,10 @@ this.lingo.game = function (glob) {
         value: function() {
           // Get the current row
           var currentRow = this.$board.querySelectorAll("game-row")[this.rowIndex];
-          var currentString = this.boardState[this.rowIndex]; // current string to be evaluated
-          if (currentString &&
-              !allWords.includes(wordToInt(currentString)) &&
-              !solutions.includes(wordToInt(currentString))) {
+          this.currentString = this.boardState[this.rowIndex]; // current string to be evaluated
+          if (this.currentString &&
+              !allWords.includes(wordToInt(this.currentString)) &&
+              !solutions.includes(wordToInt(this.currentString))) {
             // Not in either word list
             this.addToast("Not in word list");
             return currentRow.setAttribute("invalid", "");
@@ -1423,7 +1464,7 @@ this.lingo.game = function (glob) {
               }
             }
             return result;
-          }(currentString, this.solution);
+          }(this.currentString, this.solution);
 
           this.evaluations[this.rowIndex] = result;
           this.letterEvaluations = buildLetterEvaluation(
@@ -1434,7 +1475,11 @@ this.lingo.game = function (glob) {
           this.rowIndex += 1;
           this.tileIndex = 0;
 
-          // this.$keyboard.letterEvaluations = this.letterEvaluations;
+          // if (solutions.includes(wordToInt(currentString))) {
+          //   var modalDiv = this.shadowRoot.querySelector("game-modal")
+          //   modalDiv.appendChild(document.createElement("game-win"));
+          //   modalDiv.setAttribute("open", "");
+          // }
         }
       }, {
         key: "addToast",
@@ -1478,6 +1523,11 @@ this.lingo.game = function (glob) {
             (function(e) {
               gameRootThis.$keyboard.letterEvaluations =
                 gameRootThis.letterEvaluations;
+              if (this.solution === this.currentString) {
+                var modalDiv = this.shadowRoot.querySelector("game-modal")
+                modalDiv.appendChild(document.createElement("game-win"));
+                modalDiv.setAttribute("open", "");
+              }
             }));
 
           this.$board = this.shadowRoot.querySelector("#board");
@@ -1513,6 +1563,8 @@ this.lingo.game = function (glob) {
 
   // Return all relevant objects
   glob.Game = gameRoot;
+  glob.intToWord = intToWord;
+  glob.wordToInt = wordToInt;
   return glob;
 
 }({});
