@@ -6,8 +6,11 @@ this.lingo.game = function (glob) {
 
   console.log("Implement game here");
 
+  // Function magic to create new tags
+
   function addKeyFunction(e, a, s) {
-    return a && addDictToElement(e.prototype, a), s && addDictToElement(e, s), e
+    return a && addDictToElement(e.prototype, a), s &&
+      addDictToElement(e, s), e;
   }
 
   function addDictToElement(elementToBuild, functionDict) {
@@ -39,7 +42,8 @@ this.lingo.game = function (glob) {
   function isReflectAvailable() {
     if ("undefined" == typeof Reflect || !Reflect.construct) {
       // Only undefined in Internet explorer
-      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/.
+      // ./Reference/Global_Objects/Reflect
       return !1; // false
     }
     if (Reflect.construct.sham) {
@@ -49,7 +53,8 @@ this.lingo.game = function (glob) {
     if ("function" == typeof Proxy) return !0; // True
 
     try {
-      return Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], (function() {}))), !0
+      return Boolean.prototype.valueOf.call(Reflect.construct(
+        Boolean, [], (function() {}))), !0
     } catch (e) {
       return !1 // False
     }
@@ -78,12 +83,6 @@ this.lingo.game = function (glob) {
   function ReflectConstructApply(e, a, s) {
     var res = Reflect.construct.apply(null, arguments);
     return res;
-    // return (c = isReflectAvailable() ? Reflect.construct : function(e, a, s) {
-    //   var t = [null];
-    //   t.push.apply(t, a);
-    //   var n = new(Function.bind.apply(e, t));
-    //   return s && l(n, s.prototype), n
-    // }).apply(null, arguments)
   }
 
   function isInstanceOf(e, a) {
@@ -96,17 +95,10 @@ this.lingo.game = function (glob) {
       return Object.getPrototypeOf (returnFunction);
     } else {
       return function(returnFunction) {
-        return returnFunction.__proto__ || Object.getPrototypeOf(returnFunction);
+        return returnFunction.__proto__ ||
+          Object.getPrototypeOf(returnFunction);
       } (returnFunction);
     }
-    // var result = (
-    //   i = Object.setPrototypeOf ?
-    //         Object.getPrototypeOf :
-    //         function(returnFunction) {
-    //           return returnFunction.__proto__ || Object.getPrototypeOf(returnFunction)
-    //         }
-    // ) (returnFunction);
-    // return result;
   }
 
   function constructElement(returnFunction) {
@@ -128,11 +120,12 @@ this.lingo.game = function (glob) {
   }
 
   function isInitialized(e, a) {
-    var result = (!a || "object" != typeof a && "function" != typeof a ? NotInitializedError(e) : a);
+    var result = (!a || "object" != typeof a &&
+      "function" != typeof a ? NotInitializedError(e) : a);
     return result;
   }
 
-  function SomethingElement(e) {
+  function ConstructElement(lHTMLElement) {
 
     var returnElement = function (htmlElement) {
       function t() {
@@ -149,8 +142,8 @@ this.lingo.game = function (glob) {
           }
         })
 
-        return set__proto__(t, e);
-    }(e);
+        return set__proto__(t, lHTMLElement);
+    }(lHTMLElement);
     return returnElement;
   }
 
@@ -219,15 +212,15 @@ this.lingo.game = function (glob) {
     };
 
     var iconPaths = {
-      graph: `M287.183,243.393l-27.577-27.577c-5.857-5.857-15.355-5.857-21.213,0
-        c-5.858,5.857-5.858,15.355,0,21.213l1.971,1.971 H62.577V51.212l1.971,
-        1.971c5.858,5.859,15.355,5.858,21.213,0c5.858-5.857,5.858-15.355,0
-        -21.213L58.183,4.393 c-5.857-5.857-15.355-5.857-21.213,0L9.393,31.97
-        c-5.858,5.857-5.858,15.355,0,21.213c5.857,5.858,15.355,5.858,21.213,0
-        l1.971-1.971V254c0,8.284,6.716,15,15,15h192.787l-1.971,1.971c-5.858,
-        5.857-5.858,15.355,0,21.213 c5.858,5.859,15.355,5.858,21.213,0l27.577
-        -27.577C293.042,258.749,293.042,249.25,287.183,243.393z M103.089,
-        183.288c-8.284,0-15,6.716-15,15c0,8.284,6.716,15,15,15h98c8.284,0,15
+      graph: `M287.183,243.393l-27.577-27.577c-5.857-5.857-15.355-5.857
+        -21.213,0 c-5.858,5.857-5.858,15.355,0,21.213l1.971,1.971 H62.577
+        V51.212l1.971,1.971c5.858,5.859,15.355,5.858,21.213,0c5.858-5.857,5.858
+        -15.355,0-21.213L58.183,4.393 c-5.857-5.857-15.355-5.857-21.213,0L9.393
+        ,31.97c-5.858,5.857-5.858,15.355,0,21.213c5.857,5.858,15.355,5.858,
+        21.213,0l1.971-1.971V254c0,8.284,6.716,15,15,15h192.787l-1.971,1.971c
+        -5.858,5.857-5.858,15.355,0,21.213 c5.858,5.859,15.355,5.858,21.213,0
+        l27.577-27.577C293.042,258.749,293.042,249.25,287.183,243.393z M103.089
+        ,183.288c-8.284,0-15,6.716-15,15c0,8.284,6.716,15,15,15h98c8.284,0,15
         -6.716,15-15c0-8.284-6.716-15-15-15 H103.089z M103.089,88.288h76c8.284,
         0,15-6.716,15-15c0-8.284-6.716-15-15-15h-76c-8.284,0-15,6.716-15,15
         C88.089,81.572,94.804,88.288,103.089,88.288z M88.089,135.788c0,8.284,
@@ -308,7 +301,8 @@ this.lingo.game = function (glob) {
 
   var iconElement = document.createElement("template");
   iconElement.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 50 50" width="24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"
+      height="24" width="24">
       <path fill=var(--color-tone-1) />
     </svg>
   `;
@@ -329,13 +323,15 @@ this.lingo.game = function (glob) {
       value: function() {
         this.shadowRoot.appendChild(iconElement.content.cloneNode(!0));
         var e = this.getAttribute("icon");
-        this.shadowRoot.querySelector("path").setAttribute("d", iconPaths[e]);
-        this.shadowRoot.querySelector("svg").setAttribute("viewBox", iconSizes[e]);
+        this.shadowRoot.querySelector("path")
+          .setAttribute("d", iconPaths[e]);
+        this.shadowRoot.querySelector("svg")
+          .setAttribute("viewBox", iconSizes[e]);
       }
     }]);
 
     return returnFunction;
-  }(SomethingElement(HTMLElement));
+  }(ConstructElement(HTMLElement));
 
   customElements.define("game-icon", icon);
 
@@ -394,7 +390,7 @@ this.lingo.game = function (glob) {
     }]);
 
     return returnFunction;
-  }(SomethingElement(HTMLElement));
+  }(ConstructElement(HTMLElement));
   customElements.define("game-toast", gameToast);
 
   // Game board
@@ -508,9 +504,10 @@ this.lingo.game = function (glob) {
           } else if (a.animationName === "FlipOut") {
             e._animation = "idle";
             if (e._last) {
-              e.dispatchEvent(new CustomEvent("game-last-tile-revealed-in-row", {
-                bubbles: !0,
-                composed: !0
+              e.dispatchEvent(new CustomEvent(
+                "game-last-tile-revealed-in-row", {
+                  bubbles: !0,
+                  composed: !0
               }));
             }
           }
@@ -561,7 +558,7 @@ this.lingo.game = function (glob) {
     }]);
 
     return returnFunction;
-  }(SomethingElement(HTMLElement));
+  }(ConstructElement(HTMLElement));
 
   customElements.define("game-tile", gameTile);
 
@@ -674,7 +671,7 @@ this.lingo.game = function (glob) {
   );
 
     return returnFunction;
-  }(SomethingElement(HTMLElement));
+  }(ConstructElement(HTMLElement));
 
   customElements.define("game-row", gameRow);
 
@@ -694,7 +691,6 @@ this.lingo.game = function (glob) {
   			display: flex;
   			width: 100%;
   			margin: 0 auto 8px;
-  			/* https://stackoverflow.com/questions/46167604/ios-html-disable-double-tap-to-zoom */
   			touch-action: manipulation;
   		}
 		  button {
@@ -770,7 +766,8 @@ this.lingo.game = function (glob) {
       value: function() {
         this._letterEvaluations = {};
         for (const letter of alphabet) {
-          var a = this.$keyboard.querySelector('[data-key="'.concat(letter, '"]'));
+          var a = this.$keyboard
+            .querySelector('[data-key="'.concat(letter, '"]'));
           a.removeAttribute("data-state");
         }
       }
@@ -804,7 +801,8 @@ this.lingo.game = function (glob) {
          window.addEventListener("keydown", (function(a) {
            if (!0 !== a.repeat) {
              var s = a.key;
-             if (alphabet.includes(s.toLowerCase()) || "Backspace" === s || "Enter" === s) {
+             if (alphabet.includes(s.toLowerCase()) ||
+                 "Backspace" === s || "Enter" === s) {
                lThis.dispatchKeyPressEvent(s);
              }
            }
@@ -836,7 +834,7 @@ this.lingo.game = function (glob) {
     }]);
 
     return returnFunction;
-  }(SomethingElement(HTMLElement));
+  }(ConstructElement(HTMLElement));
 
   customElements.define("game-keyboard", keyboard);
 
@@ -953,7 +951,7 @@ this.lingo.game = function (glob) {
       }
     }]);
     return returnFunction;
-  }(SomethingElement(HTMLElement));
+  }(ConstructElement(HTMLElement));
   customElements.define("game-modal", gameModal);
 
   // Full page menu
@@ -1014,7 +1012,8 @@ this.lingo.game = function (glob) {
 			user-select: none;
 			cursor: pointer;
 		}
-		@media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+		@media only screen and (min-device-width : 320px)
+                       and (max-device-width : 480px) {
 			.content {
 				max-width: 100%;
 				padding: 0;
@@ -1072,25 +1071,26 @@ this.lingo.game = function (glob) {
     }
 
     addKeyFunction(returnFunction, [{
-            key: "connectedCallback",
-            value: function() {
-                var e = this;
-                this.shadowRoot.appendChild(fullPageElement.content.cloneNode(!0)),
+      key: "connectedCallback",
+      value: function() {
+        var e = this;
+        this.shadowRoot.appendChild(fullPageElement.content.cloneNode(!0));
 				this.shadowRoot.querySelector("game-icon").addEventListener("click",
-					(function(a) {
-						e.shadowRoot.querySelector(".overlay").classList.add("closing")
-                })),
-				this.shadowRoot.addEventListener("animationend", (function(a) {
-                    "SlideOut" === a.animationName &&
-						(e.shadowRoot.querySelector(".overlay").classList.remove("closing"), Array.from(e.childNodes).forEach((function(a) {
-                        e.removeChild(a)
-                    })), e.removeAttribute("open"))
-                }))
-            }
-        }]);
-		return returnFunction;
-    }(SomethingElement(HTMLElement));
-    customElements.define("full-page", fullPage);
+          function(a) {
+            e.shadowRoot.querySelector(".overlay").classList.add("closing");
+          });
+        this.shadowRoot.addEventListener("animationend", (function(a) {
+          "SlideOut" === a.animationName &&
+          (e.shadowRoot.querySelector(".overlay").classList.remove("closing"),
+          Array.from(e.childNodes).forEach((function(a) {
+            e.removeChild(a)
+          })), e.removeAttribute("open"))
+        }))
+      }
+    }]);
+    return returnFunction;
+  }(ConstructElement(HTMLElement));
+  customElements.define("full-page", fullPage);
 
   // Help menu
 
@@ -1122,8 +1122,10 @@ this.lingo.game = function (glob) {
   <h1>How to Lingo</h1>
   <div class="instructions">
     <p>Guess the word in six tries.</p>
-    <p>Each guess must be a valid five-letter word. Hit the enter button to submit.</p>
-    <p>After each guess, the color of the tiles will change to show how close your guess was to the word.</p>
+    <p>Each guess must be a valid five-letter word.
+       Hit the enter button to submit.</p>
+    <p>After each guess, the color of the tiles will change to show
+       how close your guess was to the word.</p>
     <div class="examples">
       <p><strong>Examples</strong></p>
       <div class="example">
@@ -1134,7 +1136,8 @@ this.lingo.game = function (glob) {
           <game-tile letter="e"></game-tile>
           <game-tile letter="r"></game-tile>
         </div>
-        <p>The letter <strong>C</strong> is in the word and in the correct spot.</p>
+        <p>The letter <strong>C</strong> is in the
+           word and in the correct spot.</p>
       </div>
       <div class="example">
         <div class="row">
@@ -1144,7 +1147,8 @@ this.lingo.game = function (glob) {
           <game-tile letter="x"></game-tile>
           <game-tile letter="y"></game-tile>
         </div>
-        <p>The letter <strong>R</strong> is in the word but in the wrong spot.</p>
+        <p>The letter <strong>R</strong>
+          is in the word but in the wrong spot.</p>
       </div>
       <div class="example">
         <div class="row">
@@ -1157,7 +1161,9 @@ this.lingo.game = function (glob) {
         <p>The letter <strong>T</strong> is not in the word in any spot.</p>
       </div>
     </div>
-    <p>Click on the <game-icon style="margin-bottom: -7px;" icon="reload"></game-icon> to get a new word!</p>
+    <p>Click on the
+      <game-icon style="margin-bottom: -7px;" icon="reload"></game-icon>
+       to get a new word!</p>
   </div>
 </section>
   `;
@@ -1182,7 +1188,7 @@ this.lingo.game = function (glob) {
     }]);
 
     return returnFunction;
-  }(SomethingElement(HTMLElement));
+  }(ConstructElement(HTMLElement));
   customElements.define("game-help", help);
 
   // Game win menu
@@ -1221,7 +1227,7 @@ this.lingo.game = function (glob) {
     }]);
 
     return returnFunction;
-  }(SomethingElement(HTMLElement));
+  }(ConstructElement(HTMLElement));
   customElements.define("game-win", gameWin);
 
   // Game root
@@ -1303,19 +1309,19 @@ this.lingo.game = function (glob) {
     </style>
     <header>
       <div class="menu-left">
-				<button id="test-button" class="icon" aria-label="Help" tabindex="-1">
+				<button id="test-button" class="icon" tabindex="-1">
 					<game-icon icon="graph"></game-icon>
 				</button>
-        <button id="help-button" class="icon" aria-label="Help" tabindex="-1">
+        <button id="help-button" class="icon" tabindex="-1">
 					<game-icon icon="help"></game-icon>
 				</button>
 			</div>
       <div class="title">Lingo</div>
       <div class="menu-right">
-        <button id="reload-button" class="icon" aria-label="Statistics" tabindex="-1">
+        <button id="reload-button" class="icon" tabindex="-1">
           <game-icon icon="reload"></game-icon>
         </button>
-				<button id="statistics-button" class="icon" aria-label="Statistics" tabindex="-1">
+				<button id="statistics-button" class="icon" tabindex="-1">
 					<game-icon icon="settings"></game-icon>
 				</button>
 			</div>
@@ -1416,19 +1422,19 @@ this.lingo.game = function (glob) {
       }, {
         key: "submitGuess",
         value: function() {
-          if (5 !== this.tileIndex) { // There isn't five letters in the current row
+          if (5 !== this.tileIndex) { // not five letters in the current row
             this.addToast("Not enough letters");
-            return this.$board.querySelectorAll("game-row")[this.rowIndex].setAttribute("invalid", ""); // set attribute shakes the row
+            return this.$board.querySelectorAll("game-row")[this.rowIndex]
+            .setAttribute("invalid", ""); // set attribute shakes the row
           }
-          // void this.addToast("Not enough letters"); // Create a toast with a message
           this.evaluateRow();
         }
       }, {
         key: "evaluateRow",
         value: function() {
-          // Get the current row
-          var currentRow = this.$board.querySelectorAll("game-row")[this.rowIndex];
-          this.currentString = this.boardState[this.rowIndex]; // current string to be evaluated
+          var currentRow =
+            this.$board.querySelectorAll("game-row")[this.rowIndex];
+          this.currentString = this.boardState[this.rowIndex];
           if (this.currentString &&
               !allWords.includes(wordToInt(this.currentString)) &&
               !solutions.includes(wordToInt(this.currentString))) {
@@ -1484,7 +1490,8 @@ this.lingo.game = function (glob) {
       }, {
         key: "addToast",
         value: function(e, a) {
-          var s = arguments.length > 2 && void 0 !== arguments[2] && arguments[2];
+          var s = arguments.length > 2 &&
+            void 0 !== arguments[2] && arguments[2];
           var t = document.createElement("game-toast");
           t.setAttribute("text", e);
           a && t.setAttribute("duration", a);
@@ -1557,7 +1564,7 @@ this.lingo.game = function (glob) {
     ]);
 
     return returnFunction;
-  }(SomethingElement(HTMLElement));
+  }(ConstructElement(HTMLElement));
 
   customElements.define("game-root", gameRoot);
 
