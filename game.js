@@ -1310,7 +1310,6 @@ this.lingo.game = function (glob) {
     addKeyFunction(returnFunction , [{
       key: "connectedCallback",
       value: function() {
-        // console.log("Connected game win menu");
         this.shadowRoot.appendChild(gameWinElement.content.cloneNode(!0));
         this.shadowRoot.querySelector("button")
           .addEventListener("click", function(a) {
@@ -1384,7 +1383,6 @@ this.lingo.game = function (glob) {
     addKeyFunction(returnFunction , [{
       key: "connectedCallback",
       value: function() {
-        // console.log("Connected game win menu");
         this.shadowRoot.appendChild(gameLoseElement.content.cloneNode(!0));
         this.shadowRoot.querySelector("#other")
           .addEventListener("click", function(a) {
@@ -1563,7 +1561,7 @@ this.lingo.game = function (glob) {
       e.solution = intToWord(
         solutions[Math.floor(Math.random()*solutions.length)]);
 
-      console.log(e.solution);
+      console.log("Oops:", e.solution);
 
       return e;
     }
@@ -1607,7 +1605,7 @@ this.lingo.game = function (glob) {
           this.letterEvaluations = {};
           this.$keyboard.reload();
           this.canInput = !0;
-          console.log(this.solution);
+          console.log("Oops:", this.solution);
         }
       }, {
         key: "addLetter",
