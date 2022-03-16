@@ -866,7 +866,7 @@ this.lingo.game = function (glob) {
 				box-shadow: 0 4px 23px 0 rgba(0, 0, 0, 0.2);
 				width: 90%;
 				max-height: 90%;
-				overflow-y: scroll;
+				overflow-y: auto;
 				animation: SlideIn 200ms;
 				max-width: var(--game-max-width);
 				padding: 16px;
@@ -1555,6 +1555,7 @@ this.lingo.game = function (glob) {
       addKeyValueToDict(NotInitializedError(e), "solution", "erode");
       addKeyValueToDict(NotInitializedError(e), "letterEvaluations", void 0);
       addKeyValueToDict(NotInitializedError(e), "currentString", void 0);
+      addKeyValueToDict(NotInitializedError(e), "canInput", !0);
 
       // Most state is stored in the game-root element
       e.boardState = new Array(6).fill("");
@@ -1605,12 +1606,13 @@ this.lingo.game = function (glob) {
           this.rowIndex = 0;
           this.letterEvaluations = {};
           this.$keyboard.reload();
+          this.canInput = !0;
           console.log(this.solution);
         }
       }, {
         key: "addLetter",
         value: function(letter) {
-          if (this.tileIndex < 5) {
+          if (this.tileIndex < 5 && this.canInput) {
             this.boardState[this.rowIndex] += letter;
             var row = this.$board.querySelectorAll("game-row");
             row[this.rowIndex].setAttribute("letters",
@@ -1634,7 +1636,7 @@ this.lingo.game = function (glob) {
       }, {
         key: "submitGuess",
         value: function() {
-          if (5 !== this.tileIndex) { // not five letters in the current row
+          if (5 !== this.tileIndex && this.canInput) { // not five letters in the current row
             this.addToast("Not enough letters");
             return this.$board.querySelectorAll("game-row")[this.rowIndex]
             .setAttribute("invalid", ""); // set attribute shakes the row
@@ -1644,6 +1646,9 @@ this.lingo.game = function (glob) {
       }, {
         key: "evaluateRow",
         value: function() {
+          if (!this.canInput) {
+            return;
+          }
           var currentRow =
             this.$board.querySelectorAll("game-row")[this.rowIndex];
           this.currentString = this.boardState[this.rowIndex];
@@ -1757,6 +1762,7 @@ this.lingo.game = function (glob) {
               gameRootThis.$keyboard.letterEvaluations =
                 gameRootThis.letterEvaluations;
               if (this.solution === this.currentString) {
+                this.canInput = !1;
                 var modalDiv = this.shadowRoot.querySelector("game-modal")
                 modalDiv.appendChild(document.createElement("game-win"));
                 modalDiv.setAttribute("open", "");
@@ -1764,6 +1770,7 @@ this.lingo.game = function (glob) {
                 var modalDiv = this.shadowRoot.querySelector("game-modal")
                 modalDiv.appendChild(document.createElement("game-lose"));
                 modalDiv.setAttribute("open", "");
+                this.canInput = !1;
               }
             }));
 
