@@ -919,10 +919,7 @@ this.lingo.game = function (glob) {
 				</div>
 			</div>
 		</div>
-
     `;
-
-
 
   var gameModal = function(htmlElement) {
     setPrototype(returnFunction, htmlElement);
@@ -940,8 +937,12 @@ this.lingo.game = function (glob) {
       value: function() {
         var e = this;
         this.shadowRoot.appendChild(gameModalElement.content.cloneNode(!0));
-        this.addEventListener("click", (function(a) {
-          e.shadowRoot.querySelector(".content").classList.add("closing")
+        this.shadowRoot.querySelector(".close-icon").addEventListener("click",
+          function () {
+            e.shadowRoot.querySelector(".content").classList.add("closing");
+        });
+        this.addEventListener("close-modal-menu", (function(a) {
+          e.shadowRoot.querySelector(".content").classList.add("closing");
         }));
         this.shadowRoot.addEventListener("animationend", (function(a) {
           "SlideOut" === a.animationName &&
@@ -1191,19 +1192,95 @@ this.lingo.game = function (glob) {
   }(ConstructElement(HTMLElement));
   customElements.define("game-help", help);
 
+  // Settings Menu
+
+  var settingsElement = document.createElement("template");
+  settingsElement.innerHTML = `
+    <style>
+      .setting {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid grey;
+        padding: 16px 0;
+      }
+      .text {
+        padding-right: 8px;
+      }
+      .content {
+        position: relative;
+        color: black;
+        padding: 0 32px;
+        max-width: var(--game-max-width);
+        width: 100%;
+        overflow-y: auto;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+    </style>
+    <section>
+      <div class="content">
+        <h1>Settings</h1>
+        <div class="setting">
+          <div class="text">
+            <div class="title">Difficulty</div>
+            <div class="description">Description</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+
+  var settings = function(htmlElement) {
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+      return e;
+    }
+
+    addKeyFunction(returnFunction , [{
+      key: "connectedCallback",
+      value: function() {
+        console.log("Connected settings");
+        this.shadowRoot.appendChild(settingsElement.content.cloneNode(!0));
+      }
+    }]);
+
+    return returnFunction;
+  }(ConstructElement(HTMLElement));
+  customElements.define("game-settings", settings);
+
   // Game win menu
 
   var gameWinElement = document.createElement("template");
   gameWinElement.innerHTML = `
     <style>
       #results {
-        display: flex;
+        display: grid;
         justify-content: center;
         align-items: center;
+      }
+      h1 {
+        justify-content: center;
+        display: flex;
+      }
+      button {
+        padding: 0 20px 0;
+        background-color: black;
+        color: white;
+        border: none;
+        border-radius: 8px;
       }
     </style>
     <div id="results">
       <h1>WIN !</h1>
+      <button><h3>Play again ?</h3></button>
     </div>
   `;
 
@@ -1221,8 +1298,23 @@ this.lingo.game = function (glob) {
     addKeyFunction(returnFunction , [{
       key: "connectedCallback",
       value: function() {
-        console.log("Connected callback");
+        // console.log("Connected game win menu");
         this.shadowRoot.appendChild(gameWinElement.content.cloneNode(!0));
+        this.shadowRoot.querySelector("button")
+          .addEventListener("click", function(a) {
+            console.log("Button!");
+            this.dispatchEvent(new CustomEvent(
+              "reload-game", {
+                bubbles: !0,
+                composed: !0
+            }));
+            this.dispatchEvent(new CustomEvent(
+              "close-modal-menu", {
+                bubbles: !0,
+                composed: !0,
+            }));
+          });
+
       }
     }]);
 
@@ -1321,7 +1413,7 @@ this.lingo.game = function (glob) {
         <button id="reload-button" class="icon" tabindex="-1">
           <game-icon icon="reload"></game-icon>
         </button>
-				<button id="statistics-button" class="icon" tabindex="-1">
+				<button id="settings-button" class="icon" tabindex="-1">
 					<game-icon icon="settings"></game-icon>
 				</button>
 			</div>
@@ -1373,7 +1465,14 @@ this.lingo.game = function (glob) {
 
     addKeyFunction(returnFunction , [
       {
-        key: "showHelpModal",
+        key: "showSettingsFullPage",
+        value: function () {
+          var modalDiv = this.shadowRoot.querySelector("full-page");
+          modalDiv.appendChild(document.createElement("game-settings"));
+          modalDiv.setAttribute("open", "");
+        }
+      }, {
+        key: "showHelpFullPage",
         value: function () {
           // var modalDiv = this.querySelector("#game-help");
           var modalDiv = this.shadowRoot.querySelector("full-page")
@@ -1506,11 +1605,15 @@ this.lingo.game = function (glob) {
         value: function () {
           var gameRootThis = this;
           this.shadowRoot.appendChild(gameRootElement.content.cloneNode(!0));
+          this.shadowRoot.getElementById("settings-button").
+             addEventListener("click", (function(e) {
+               gameRootThis.showSettingsFullPage();
+             }));
           this.shadowRoot.getElementById("help-button").
              addEventListener("click", (function(e) {
-               gameRootThis.showHelpModal();
+               gameRootThis.showHelpFullPage();
              }));
-           this.shadowRoot.getElementById("reload-button").
+          this.shadowRoot.getElementById("reload-button").
               addEventListener("click", (function(e) {
                 gameRootThis.reload();
               }));
@@ -1525,6 +1628,10 @@ this.lingo.game = function (glob) {
               this.addLetter(letter);
             }
           }));
+
+          this.addEventListener("reload-game", function(e) {
+              this.reload();
+          });
 
           this.addEventListener("game-last-tile-revealed-in-row",
             (function(e) {
