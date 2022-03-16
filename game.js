@@ -1306,7 +1306,10 @@ this.lingo.game = function (glob) {
             this.dispatchEvent(new CustomEvent(
               "reload-game", {
                 bubbles: !0,
-                composed: !0
+                composed: !0,
+                detail: {
+                  key: "new-word",
+                }
             }));
             this.dispatchEvent(new CustomEvent(
               "close-modal-menu", {
@@ -1321,6 +1324,97 @@ this.lingo.game = function (glob) {
     return returnFunction;
   }(ConstructElement(HTMLElement));
   customElements.define("game-win", gameWin);
+
+  // Game loose menu
+
+  var gameLoseElement = document.createElement("template");
+  gameLoseElement.innerHTML = `
+    <style>
+      #results {
+        display: grid;
+        justify-content: center;
+        align-items: center;
+      }
+      h1 {
+        justify-content: center;
+        display: flex;
+      }
+      button {
+        padding: 0 20px 0;
+        background-color: black;
+        color: white;
+        border: none;
+        border-radius: 8px;
+      }
+      #other {
+        margin-top: 2em;
+        margin-bottom: 1em;
+      }
+    </style>
+    <div id="results">
+      <h1>Lost !</h1>
+      <button id="retry"><h3>Retry this?</h3></button>
+      <button id="other"><h3>Another word?</h3></button>
+    </div>
+  `;
+
+  var gameLose = function(htmlElement) {
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+      return e;
+    }
+
+    addKeyFunction(returnFunction , [{
+      key: "connectedCallback",
+      value: function() {
+        // console.log("Connected game win menu");
+        this.shadowRoot.appendChild(gameLoseElement.content.cloneNode(!0));
+        this.shadowRoot.querySelector("#other")
+          .addEventListener("click", function(a) {
+            console.log("Button!");
+            this.dispatchEvent(new CustomEvent(
+              "reload-game", {
+                bubbles: !0,
+                composed: !0,
+                detail: {
+                  key: "new-word",
+                }
+            }));
+            this.dispatchEvent(new CustomEvent(
+              "close-modal-menu", {
+                bubbles: !0,
+                composed: !0,
+            }));
+          });
+          this.shadowRoot.querySelector("#retry")
+            .addEventListener("click", function(a) {
+              console.log("Button!");
+              this.dispatchEvent(new CustomEvent(
+                "reload-game", {
+                  bubbles: !0,
+                  composed: !0,
+                  detail: {
+                    key: "same-word",
+                  }
+              }));
+              this.dispatchEvent(new CustomEvent(
+                "close-modal-menu", {
+                  bubbles: !0,
+                  composed: !0,
+              }));
+            });
+
+      }
+    }]);
+
+    return returnFunction;
+  }(ConstructElement(HTMLElement));
+  customElements.define("game-lose", gameLose);
 
   // Game root
 
@@ -1481,14 +1575,16 @@ this.lingo.game = function (glob) {
         }
       }, {
         key: "reload",
-        value: function() {
+        value: function(newWord) {
           this.boardState = new Array(6).fill("");
           var rows = this.$board.querySelectorAll("game-row");
           rows.forEach(function (row) {
             row.removeAttribute("letters");
           });
-          this.solution = intToWord(
-            solutions[Math.floor(Math.random()*solutions.length)]);
+          if (newWord) {
+            this.solution = intToWord(
+              solutions[Math.floor(Math.random()*solutions.length)]);
+          }
           this.rowIndex = 0;
           this.letterEvaluations = {};
           this.$keyboard.reload();
@@ -1630,7 +1726,13 @@ this.lingo.game = function (glob) {
           }));
 
           this.addEventListener("reload-game", function(e) {
-              this.reload();
+            if (e.detail.key === "new-word") {
+              this.reload(true);
+            } else if (e.detail.key === "same-word") {
+              this.reload(false);
+            } else {
+              this.reload(true);
+            }
           });
 
           this.addEventListener("game-last-tile-revealed-in-row",
@@ -1640,6 +1742,10 @@ this.lingo.game = function (glob) {
               if (this.solution === this.currentString) {
                 var modalDiv = this.shadowRoot.querySelector("game-modal")
                 modalDiv.appendChild(document.createElement("game-win"));
+                modalDiv.setAttribute("open", "");
+              } else if (this.rowIndex > 5) {
+                var modalDiv = this.shadowRoot.querySelector("game-modal")
+                modalDiv.appendChild(document.createElement("game-lose"));
                 modalDiv.setAttribute("open", "");
               }
             }));
