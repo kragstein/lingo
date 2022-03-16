@@ -1719,7 +1719,7 @@ this.lingo.game = function (glob) {
              }));
           this.shadowRoot.getElementById("reload-button").
               addEventListener("click", (function(e) {
-                gameRootThis.reload();
+                gameRootThis.reload(true);
               }));
 
           this.addEventListener("game-key-press", (function(e) {
