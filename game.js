@@ -684,7 +684,7 @@ this.lingo.game = function (glob) {
   			height: var(--keyboard-height);
   		}
   		#keyboard {
-  			/* margin: 0 8px; */
+  			margin: 0 4px;
   			user-select: none;
   		}
   		.row {
@@ -866,7 +866,7 @@ this.lingo.game = function (glob) {
 				box-shadow: 0 4px 23px 0 rgba(0, 0, 0, 0.2);
 				width: 90%;
 				max-height: 90%;
-				overflow-y: auto;
+				overflow-y: scroll;
 				animation: SlideIn 200ms;
 				max-width: var(--game-max-width);
 				padding: 16px;
@@ -1050,7 +1050,7 @@ this.lingo.game = function (glob) {
 	<div class="overlay">
 		<div class="content">
 			<header>
-				<slot></slot>
+				<h1><slot></slot></h1>
 				<game-icon icon="close"></game-icon>
 			</header>
 			<div class="content-container">
@@ -1114,9 +1114,9 @@ this.lingo.game = function (glob) {
     width: 40px;
     height: 40px;
   }
-  :host([page]) section {
+  section {
     padding: 16px;
-    padding-top: 0px;
+
   }
 </style>
 <section>
@@ -1127,10 +1127,12 @@ this.lingo.game = function (glob) {
     Josh Wardle</p>
   <p>I wanted to understand how such an elegant UI was implemented in
   javascript.</p>
-  <p>Be sure to inspect the source code (right-click -> Inspect), it is meant
-  to be readable</p>
+  <p>Be sure to inspect the source code</p>
+  <p>Right-click ➜ Inspect</p>
+  <p>It is meant to be readable</p>
   <p>The git repository will be available soon.</p>
   </div>
+
   <h1>How to Lingo</h1>
   <div class="instructions">
     <p>Guess the word in six tries.</p>
@@ -1578,7 +1580,14 @@ this.lingo.game = function (glob) {
         value: function () {
           // var modalDiv = this.querySelector("#game-help");
           var modalDiv = this.shadowRoot.querySelector("full-page")
-          modalDiv.appendChild(document.createElement("game-help"));
+          // No idea why we need to create a TextNode here,
+          // The whole tag tree is messed up after...
+          // var s = document.createTextNode("How to play");
+          // modalDiv.appendChild(s);
+          var t = document.createElement("game-help");
+          t.setAttribute("page", "");
+          t.setAttribute("slot", "content");
+          modalDiv.appendChild(t);
           modalDiv.setAttribute("open", "");
         }
       }, {
