@@ -4,7 +4,7 @@ this.lingo.game = function (glob) {
 
   "use strict";
 
-  console.log("Implement game here");
+  console.log("Welcome to Lingo, please read the source code. 🖥️👀");
 
   // Function magic to create new tags
 
@@ -1120,6 +1120,17 @@ this.lingo.game = function (glob) {
   }
 </style>
 <section>
+  <h1>Why this clone</h1>
+  <div class="instructions">
+  <p>This is a re-implementation of
+    <a href="https://www.powerlanguage.co.uk/wordle/">Wordle</a> by
+    Josh Wardle</p>
+  <p>I wanted to understand how such an elegant UI was implemented in
+  javascript.</p>
+  <p>Be sure to inspect the source code (right-click -> Inspect), it is meant
+  to be readable</p>
+  <p>The git repository will be available soon.</p>
+  </div>
   <h1>How to Lingo</h1>
   <div class="instructions">
     <p>Guess the word in six tries.</p>
@@ -1183,7 +1194,6 @@ this.lingo.game = function (glob) {
     addKeyFunction(returnFunction , [{
       key: "connectedCallback",
       value: function() {
-        console.log("Connected callback");
         this.shadowRoot.appendChild(helpElement.content.cloneNode(!0));
       }
     }]);
@@ -1247,7 +1257,6 @@ this.lingo.game = function (glob) {
     addKeyFunction(returnFunction , [{
       key: "connectedCallback",
       value: function() {
-        console.log("Connected settings");
         this.shadowRoot.appendChild(settingsElement.content.cloneNode(!0));
       }
     }]);
@@ -1276,6 +1285,7 @@ this.lingo.game = function (glob) {
         color: white;
         border: none;
         border-radius: 8px;
+        cursor: pointer;
       }
     </style>
     <div id="results">
@@ -1302,7 +1312,6 @@ this.lingo.game = function (glob) {
         this.shadowRoot.appendChild(gameWinElement.content.cloneNode(!0));
         this.shadowRoot.querySelector("button")
           .addEventListener("click", function(a) {
-            console.log("Button!");
             this.dispatchEvent(new CustomEvent(
               "reload-game", {
                 bubbles: !0,
@@ -1345,6 +1354,7 @@ this.lingo.game = function (glob) {
         color: white;
         border: none;
         border-radius: 8px;
+        cursor: pointer;
       }
       #other {
         margin-top: 2em;
@@ -1376,7 +1386,6 @@ this.lingo.game = function (glob) {
         this.shadowRoot.appendChild(gameLoseElement.content.cloneNode(!0));
         this.shadowRoot.querySelector("#other")
           .addEventListener("click", function(a) {
-            console.log("Button!");
             this.dispatchEvent(new CustomEvent(
               "reload-game", {
                 bubbles: !0,
@@ -1393,7 +1402,6 @@ this.lingo.game = function (glob) {
           });
           this.shadowRoot.querySelector("#retry")
             .addEventListener("click", function(a) {
-              console.log("Button!");
               this.dispatchEvent(new CustomEvent(
                 "reload-game", {
                   bubbles: !0,
