@@ -1213,7 +1213,7 @@ this.lingo.game = function (glob) {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid grey;
+        border-bottom: 1px solid #d4d5d9;
         padding: 16px 0;
       }
       .text {
@@ -1230,19 +1230,40 @@ this.lingo.game = function (glob) {
         display: flex;
         flex-direction: column;
       }
+      .title {
+        font-size: 18px;
+      }
+      .description {
+        font-size: 12px;
+        color: #777b7d;
+      }
+      a, a:visited {
+        color: #787c7e;
+      }
 
     </style>
     <section>
-      <div class="content">
-        <h1>Settings</h1>
-        <div class="setting">
-          <div class="text">
-            <div class="title">Difficulty</div>
-            <div class="description">Description</div>
-          </div>
+      <div class="setting">
+        <div class="text">
+          <div class="title">Hard Mode</div>
+          <div class="description">Description</div>
+        </div>
+      </div>
+      <div class="setting">
+        <div class="text">
+          <div class="title">Dark Theme</div>
         </div>
       </div>
     </section>
+    <section>
+      <div class="setting">
+        <div class="text">
+          <div class="title">More ?</div>
+        </div>
+        <div class="control"><a href="./">Link</a></div>
+      </div>
+    </section>
+
   `;
 
   var settings = function(htmlElement) {
@@ -1571,7 +1592,12 @@ this.lingo.game = function (glob) {
         key: "showSettingsFullPage",
         value: function () {
           var modalDiv = this.shadowRoot.querySelector("full-page");
-          modalDiv.appendChild(document.createElement("game-settings"));
+          var s = document.createTextNode("Settings");
+          modalDiv.appendChild(s);
+          var settings = document.createElement("game-settings");
+          settings.setAttribute("page", "");
+          settings.setAttribute("slot", "content");
+          modalDiv.appendChild(settings);
           modalDiv.setAttribute("open", "");
         }
       }, {
