@@ -1241,6 +1241,20 @@ this.lingo.game = function (glob) {
         color: #787c7e;
       }
 
+      #footnote {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px;
+        color: #787c7e;
+        font-size: 12px;
+        text-align: right;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+
     </style>
     <section>
       <div class="setting">
@@ -1263,6 +1277,12 @@ this.lingo.game = function (glob) {
         <div class="control"><a href="./">Link</a></div>
       </div>
     </section>
+
+    <div id="footnote">
+      <div>© Lingo 2022</div>
+      <div id="puzzle-number">#123</div>
+    </div>
+
 
   `;
 
