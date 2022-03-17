@@ -165,6 +165,8 @@ this.lingo.game = function (glob) {
         present: 2,
         correct: 3
     };
+  var solutionNum = 0;
+
 
     // Solutions and words handling
 
@@ -1127,9 +1129,9 @@ this.lingo.game = function (glob) {
     Josh Wardle</p>
   <p>I wanted to understand how such an elegant UI was implemented in
   javascript.</p>
-  <p>Be sure to inspect the source code</p>
+  <p>Be sure to inspect the source code.</p>
   <p>Right-click ➜ Inspect</p>
-  <p>It is meant to be readable</p>
+  <p>It is meant to be readable.</p>
   <p>The git repository will be available soon.</p>
   </div>
 
@@ -1301,6 +1303,8 @@ this.lingo.game = function (glob) {
       key: "connectedCallback",
       value: function() {
         this.shadowRoot.appendChild(settingsElement.content.cloneNode(!0));
+        var pNum = this.shadowRoot.querySelector("#puzzle-number");
+        pNum.innerHTML = "#" + solutionNum;
       }
     }]);
 
@@ -1591,18 +1595,15 @@ this.lingo.game = function (glob) {
       addKeyValueToDict(NotInitializedError(e), "$keyboard", void 0);
       addKeyValueToDict(NotInitializedError(e), "$board", void 0);
       addKeyValueToDict(NotInitializedError(e), "$game", void 0);
-      addKeyValueToDict(NotInitializedError(e), "solution", "erode");
+      addKeyValueToDict(NotInitializedError(e), "solution", void 0);
+      addKeyValueToDict(NotInitializedError(e), "solutionNum", void 0);
       addKeyValueToDict(NotInitializedError(e), "letterEvaluations", void 0);
       addKeyValueToDict(NotInitializedError(e), "currentString", void 0);
       addKeyValueToDict(NotInitializedError(e), "canInput", !0);
 
       // Most state is stored in the game-root element
       e.boardState = new Array(6).fill("");
-      e.evaluations = new Array(6).fill(null)
-      e.solution = intToWord(
-        solutions[Math.floor(Math.random()*solutions.length)]);
-
-      console.log("Oops:", e.solution);
+      e.evaluations = new Array(6).fill(null);
 
       return e;
     }
@@ -1644,8 +1645,11 @@ this.lingo.game = function (glob) {
             row.removeAttribute("letters");
           });
           if (newWord) {
+            this.solutionNum = Math.floor(Math.random()*solutions.length);
+            solutionNum = this.solutionNum;
             this.solution = intToWord(
-              solutions[Math.floor(Math.random()*solutions.length)]);
+              solutions[this.solutionNum]);
+
           }
           this.rowIndex = 0;
           this.letterEvaluations = {};
@@ -1831,6 +1835,7 @@ this.lingo.game = function (glob) {
             this.$board.appendChild(u)
           }
           this.sizeBoard();
+          this.reload(true);
         }
       }, {
         key: "sizeBoard",
