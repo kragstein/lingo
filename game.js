@@ -6,159 +6,22 @@ this.lingo.game = function (glob) {
 
   console.log("Welcome to Lingo, please read the source code. 🖥️👀");
 
-  // Function magic to create new tags
-
-  function addKeyFunction(e, a, s) {
-    return a && addDictToElement(e.prototype, a), s &&
-      addDictToElement(e, s), e;
-  }
-
-  function addDictToElement(elementToBuild, functionDict) {
-    for (var s = 0; s < functionDict.length; s++) {
-      var t = functionDict[s];
-      t.enumerable = t.enumerable || !1,
-      t.configurable = !0,
-      "value" in t && (t.writable = !0),
-      Object.defineProperty(elementToBuild, t.key, t)
-    }
-  }
-
-  function addKeyValueToDict(e /* dict */, a /* string */, s /* integer */) {
-        return a in e ? Object.defineProperty(e, a, {
-            value: s,
-            enumerable: !0,
-            configurable: !0,
-            writable: !0
-        }) : e[a] = s, e
-    }
-
-  function NotInitializedError(e) {
-    if (void 0 === e)
-      throw new ReferenceError(
-        "this hasn't been initialised - super() hasn't been called");
-    return e;
-  }
-
-  function isReflectAvailable() {
-    if ("undefined" == typeof Reflect || !Reflect.construct) {
-      // Only undefined in Internet explorer
-      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/.
-      // ./Reference/Global_Objects/Reflect
-      return !1; // false
-    }
-    if (Reflect.construct.sham) {
-      return !1; // false
-    }
-
-    if ("function" == typeof Proxy) return !0; // True
-
-    try {
-      return Boolean.prototype.valueOf.call(Reflect.construct(
-        Boolean, [], (function() {}))), !0
-    } catch (e) {
-      return !1 // False
-    }
-  }
-
-  function set__proto__(returnFunction, htmlElement) {
-    return function (returnFunction, htmlElement) {
-      return returnFunction.__proto__ = htmlElement, returnFunction;
-    }(returnFunction, htmlElement);
-  }
-
-  function setPrototype(returnFunction, htmlElement) {
-    if ("function" != typeof htmlElement && null !== htmlElement)
-    throw new TypeError("Super expression must either be null or a function");
-
-    returnFunction.prototype = Object.create(htmlElement.prototype, {
-      constructor: {
-        value: returnFunction,
-        writable: !0, // true
-        configurable: !0 // true
-      }
-    });
-    set__proto__(returnFunction, htmlElement)
-  }
-
-  function ReflectConstructApply(e, a, s) {
-    var res = Reflect.construct.apply(null, arguments);
-    return res;
-  }
-
-  function isInstanceOf(e, a) {
-    if (!(e instanceof a))
-    throw new TypeError("Cannot call a class as a function")
-  }
-
-  function getPrototypeOf(returnFunction) {
-    if (Object.setPrototypeOf) {
-      return Object.getPrototypeOf (returnFunction);
-    } else {
-      return function(returnFunction) {
-        return returnFunction.__proto__ ||
-          Object.getPrototypeOf(returnFunction);
-      } (returnFunction);
-    }
-  }
-
-  function constructElement(returnFunction) {
-    return function() {
-      var htmlElement;
-      addDictToElement = getPrototypeOf(returnFunction);
-
-      if (isReflectAvailable()) {
-        var n = getPrototypeOf(this).constructor;
-        htmlElement = Reflect.construct(
-          addDictToElement, /* target */
-          arguments, /* argument list */
-          n /* new target, constructor whose prototype is going to be used */ )
-      } else htmlElement = addDictToElement.apply(this, arguments);
-
-      isInitialized(this, htmlElement)
-      return htmlElement;
-    }
-  }
-
-  function isInitialized(e, a) {
-    var result = (!a || "object" != typeof a &&
-      "function" != typeof a ? NotInitializedError(e) : a);
-    return result;
-  }
-
-  function ConstructElement(lHTMLElement) {
-
-    var returnElement = function (htmlElement) {
-      function t() {
-        return ReflectConstructApply(
-          htmlElement, arguments, getPrototypeOf(this).constructor);
-        }
-
-        t.prototype = Object.create(htmlElement.prototype, {
-          constructor: {
-            value: t,
-            enumerable: !1,
-            writable: !0,
-            configurable: !0
-          }
-        })
-
-        return set__proto__(t, lHTMLElement);
-    }(lHTMLElement);
-    return returnElement;
-  }
-
   // Building the game
 
+  // Keybaord arrays to loop through when building the html
   var keyboardLetterPattern = [
     ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
     ["-", "a", "s", "d", "f", "g", "h", "j", "k", "l", "-"],
     ["ENTER", "z", "x", "c", "v", "b", "n", "m", "BACK"]
   ];
+
+  // Attributes used to add (and remove) to tiles
   var PRESENT = "present";
   var CORRECT = "correct";
   var ABSENT = "absent";
   var alphabet = "abcdefghijklmnopqrstuvwxyz";
 
+  // Order of precendence when applying colors to the keyboard
   var stateOrder = {
         unknown: 0,
         absent: 1,
@@ -166,113 +29,6 @@ this.lingo.game = function (glob) {
         correct: 3
     };
   var solutionNum = 0;
-
-
-    // Solutions and words handling
-
-    function wordToInt(word) {
-      var result = 0;
-      word.split("").forEach(
-        function(c, i) {
-          result += getIndex(c) * (26 ** i);
-         }
-      );
-      return result;
-    }
-
-    function intToWord(val) {
-      var result = "";
-      var i = 5; // This eats the a at word end : log(26, val);
-      for (i ; i > 0; i--) {
-        var letterValue = Math.floor(val / (26**(i-1)));
-        val -= letterValue * (26**(i-1));
-        result = String.fromCharCode(97 + letterValue) + result;
-      }
-      return result;
-    }
-
-    function getIndex(letter) {
-      return letter.charCodeAt()-97;
-    }
-
-    function log(base, number) {
-      return Math.ceil(Math.log(number) / Math.log(base));
-    }
-
-
-    // Visualize paths:
-    // https://svg-path-visualizer.netlify.app
-    // Find paths
-    // https://www.svgrepo.com/
-
-    var iconSizes = {
-      help: "0 0 22 22",
-      settings: "0 0 45 45",
-      graph: "0 0 300 300",
-      reload: "0 0 500 500",
-      close: "0 0 22 22",
-    };
-
-    var iconPaths = {
-      graph: `M287.183,243.393l-27.577-27.577c-5.857-5.857-15.355-5.857
-        -21.213,0 c-5.858,5.857-5.858,15.355,0,21.213l1.971,1.971 H62.577
-        V51.212l1.971,1.971c5.858,5.859,15.355,5.858,21.213,0c5.858-5.857,5.858
-        -15.355,0-21.213L58.183,4.393 c-5.857-5.857-15.355-5.857-21.213,0L9.393
-        ,31.97c-5.858,5.857-5.858,15.355,0,21.213c5.857,5.858,15.355,5.858,
-        21.213,0l1.971-1.971V254c0,8.284,6.716,15,15,15h192.787l-1.971,1.971c
-        -5.858,5.857-5.858,15.355,0,21.213 c5.858,5.859,15.355,5.858,21.213,0
-        l27.577-27.577C293.042,258.749,293.042,249.25,287.183,243.393z M103.089
-        ,183.288c-8.284,0-15,6.716-15,15c0,8.284,6.716,15,15,15h98c8.284,0,15
-        -6.716,15-15c0-8.284-6.716-15-15-15 H103.089z M103.089,88.288h76c8.284,
-        0,15-6.716,15-15c0-8.284-6.716-15-15-15h-76c-8.284,0-15,6.716-15,15
-        C88.089,81.572,94.804,88.288,103.089,88.288z M88.089,135.788c0,8.284,
-        6.716,15,15,15h165c8.284,0,15-6.716,15-15c0-8.284-6.716-15-15-15h-165
-        C94.804,120.788,88.089,127.503,88.089,135.788z`,
-      settings: `
-        M43.454,18.443h-2.437c-0.453-1.766-1.16-3.42-2.082-4.933l1.752-1.756
-        c0.473-0.473,0.733-1.104,0.733-1.774 c0-0.669-0.262-1.301-0.733-1.773
-        l-2.92-2.917c-0.947-0.948-2.602-0.947-3.545-0.001l-1.826,1.815
-        C30.9,6.232,29.296,5.56,27.529,5.128V2.52c0-1.383-1.105-2.52-2.488-2.52
-        h-4.128c-1.383,0-2.471,1.137-2.471,2.52v2.607  c-1.766,0.431-3.38,1.104
-        -4.878,1.977l-1.825-1.815c-0.946-0.948-2.602-0.947-3.551-0.001L5.27,
-        8.205 C4.802,8.672,4.535,9.318,4.535,9.978c0,0.669,0.259,1.299,0.733,
-        1.772l1.752,1.76c-0.921,1.513-1.629,3.167-2.081,4.933H2.501 C1.117,
-        18.443,0,19.555,0,20.935v4.125c0,1.384,1.117,2.471,2.501,2.471h2.438
-        c0.452,1.766,1.159,3.43,2.079,4.943l-1.752,1.763 c-0.474,0.473-0.734,
-        1.106-0.734,1.776s0.261,1.303,0.734,1.776l2.92,2.919c0.474,0.473,1.103,
-        0.733,1.772,0.733 s1.299-0.261,1.773-0.733l1.833-1.816c1.498,0.873,
-        3.112,1.545,4.878,1.978v2.604c0,1.383,1.088,2.498,2.471,2.498h4.128
-        c1.383,0,2.488-1.115,2.488-2.498v-2.605c1.767-0.432,3.371-1.104,4.869
-        -1.977l1.817,1.812c0.474,0.475,1.104,0.735,1.775,0.735 c0.67,0,1.301
-        -0.261,1.774-0.733l2.92-2.917c0.473-0.472,0.732-1.103,0.734-1.772
-        c0-0.67-0.262-1.299-0.734-1.773l-1.75-1.77 c0.92-1.514,1.627-3.179,
-        2.08-4.943h2.438c1.383,0,2.52-1.087,2.52-2.471v-4.125C45.973,19.555,
-        44.837,18.443,43.454,18.443z M22.976,30.85c-4.378,0-7.928-3.517-7.928
-        -7.852c0-4.338,3.55-7.85,7.928-7.85c4.379,0,7.931,3.512,7.931,7.85
-        C30.906,27.334,27.355,30.85,22.976,30.85z
-      `,
-      help: `
-        M12 6a3.939 3.939 0 0 0-3.934 3.934h2C10.066 8.867 10.934 8 12 8
-        s1.934.867 1.934 1.934c0 .598-.481 1.032-1.216 1.626a9.208 9.208 0 0 0
-        -.691.599c-.998.997-1.027 2.056-1.027 2.174V15h2l-.001-.633c.001
-        -.016.033-.386.441-.793.15-.15.339-.3.535-.458.779-.631 1.958-1.584
-        1.958-3.182A3.937 3.937 0 0 0 12 6zm-1 10h2v2h-2z M12 2C6.486 2 2 6.486
-        2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589
-        -8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z
-      `,
-      reload: `
-        M268.175,488.161c98.2-11,176.9-89.5,188.1-187.7c14.7-128.4-85.1-237.7
-        -210.2-239.1v-57.6c0-3.2-4-4.9-6.7-2.9 l-118.6,87.1c-2,1.5-2,4.4,0,5.9
-        l118.6,87.1c2.7,2,6.7,0.2,6.7-2.9v-57.5c87.9,1.4,158.3,76.2,152.3,165.6
-		    c-5.1,76.9-67.8,139.3-144.7,144.2c-81.5,5.2-150.8-53-163.2-130c-2.3
-        -14.3-14.8-24.7-29.2-24.7c-17.9,0-31.9,15.9-29.1,33.6 C49.575,418.961,
-        150.875,501.261,268.175,488.161z
-      `,
-      close: `M13.41 12l4.3-4.29a1 1 0 1 0-1.42-1.42L12 10.59l-4.29-4.3a1 1 0 0
-        0-1.42 1.42l4.3 4.29-4.3 4.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l4.29
-        -4.3 4.29 4.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42z
-      `
-    };
 
   // Buttons
   var button = document.createElement("template");
@@ -299,46 +55,10 @@ this.lingo.game = function (glob) {
     return letterEvaluationDict;
   }
 
-  // Icons
+  // Toasts are the message box displaying error messages such as:
+  // Not enough letters, Not in word list, etc
 
-  var iconElement = document.createElement("template");
-  iconElement.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"
-      height="24" width="24">
-      <path fill=var(--color-tone-1) />
-    </svg>
-  `;
-
-  var icon = function(htmlElement) {
-    setPrototype(returnFunction, htmlElement);
-    var element = constructElement(returnFunction);
-
-    function returnFunction() {
-      var e;
-      isInstanceOf(this, returnFunction);
-      (e = element.call(this)).attachShadow({ mode: "open" });
-      return e;
-    }
-
-    addKeyFunction(returnFunction , [{
-      key: "connectedCallback",
-      value: function() {
-        this.shadowRoot.appendChild(iconElement.content.cloneNode(!0));
-        var e = this.getAttribute("icon");
-        this.shadowRoot.querySelector("path")
-          .setAttribute("d", iconPaths[e]);
-        this.shadowRoot.querySelector("svg")
-          .setAttribute("viewBox", iconSizes[e]);
-      }
-    }]);
-
-    return returnFunction;
-  }(ConstructElement(HTMLElement));
-
-  customElements.define("game-icon", icon);
-
-  // Toast
-
+  // Define the html for the <toast> tag
   var toastElement = document.createElement("template");
   toastElement.innerHTML = `
   <style>
@@ -364,6 +84,8 @@ this.lingo.game = function (glob) {
   </style>
   <div class="toast"></div>
   `;
+
+  // Build the toast object
   var gameToast = function(htmlElement) {
     setPrototype(returnFunction, htmlElement);
     var element = constructElement(returnFunction);
@@ -378,13 +100,21 @@ this.lingo.game = function (glob) {
     addKeyFunction(returnFunction , [{
       key: "connectedCallback",
       value: function() {
-        var e = this;
+        // Append the html to the <game-toast> tag
         this.shadowRoot.appendChild(toastElement.content.cloneNode(!0));
+
+        var e = this;
         var toastDiv = this.shadowRoot.querySelector(".toast");
+
+        // Set the text content from the attribute
+        // (set when the game-toast is created)
         toastDiv.textContent = this.getAttribute("text");
+
+        // Add fade class with a timeout of 1 second
         setTimeout((function () {
           toastDiv.classList.add("fade");
         }), 1e3);
+        // When the fade transition end, remove the toast
         toastDiv.addEventListener("transitionend", (function (a) {
           e.parentNode.removeChild(e);
         }));
@@ -398,6 +128,7 @@ this.lingo.game = function (glob) {
   // Game board
 
   // Game Tile
+  // Each letter on the 5 by 6 board is a tile
 
   var gameTileElement = document.createElement("template");
   gameTileElement.innerHTML = `
@@ -474,6 +205,9 @@ this.lingo.game = function (glob) {
       isInstanceOf(this, returnFunction);
       (e = element.call(this)).attachShadow({ mode: "open" });
 
+      // Declare member variables used for the behaviour of the tile
+      // and used to store state : if there's a letter, if it was
+      // revealed, what kind of reveal and where we are in an animation
       addKeyValueToDict(NotInitializedError(e), "_letter", "");
       addKeyValueToDict(NotInitializedError(e), "_animation", "idle");
       addKeyValueToDict(NotInitializedError(e), "_reveal", !1);
@@ -487,28 +221,46 @@ this.lingo.game = function (glob) {
       {
         key: "last",
         set: function(e) {
+          // Keep track of wether this is the last tile
+          // Some events will only trigger if we reveal the last tile
           this._last = e;
         }
 			}, {
       key: "connectedCallback",
       value: function() {
-        var e = this;
+        // Append the HTML to the <game-tile> tag when it is created
         this.shadowRoot.appendChild(gameTileElement.content.cloneNode(!0));
+
+        var e = this;
         this.$tile = this.shadowRoot.querySelector(".tile");
+        // Install listener for end of animation events
         this.$tile.addEventListener("animationend", (function(a) {
+          // At tile creatioin, the status is idle
           e._anmiation = "idle";
           if (a.animationName === "") {
+            // catch if animationName is empty,
+            // doesn't seem to ever reach this branch
             e._animation = "idle";
             e._update();
           } else if (a.animationName === "FlipIn") {
+            // Store state in member variable, this will update the letters
+            // and the revealed color
             e.$tile.dataset.state = e._state;
+            // After Flip-in animation ended, start the Flip-out animation
+            // the state (letter and color) was changed in the previous line
             e._animation = "flip-out";
           } else if (a.animationName === "FlipOut") {
+            // The flip-out of the tile has ended, back to idle state
             e._animation = "idle";
+            // If this was the last letter, dispatch an event that this line
+            // is done
             if (e._last) {
               e.dispatchEvent(new CustomEvent(
                 "game-last-tile-revealed-in-row", {
+                  // event bubbles up the DOM, to be catched
                   bubbles: !0,
+                  // allow the event to propagate form the shadow DOM
+                  // into the standard DOM
                   composed: !0
               }));
             }
@@ -520,20 +272,29 @@ this.lingo.game = function (glob) {
     }, {
       key: "attributeChangedCallback",
       value: function(e, a, s) {
+        // When using custom elements (or tags), we can catch when an attribute
+        // is changed, for example when the letter is added, to start animations
+        // and wether a tile is empty, or colored
         switch (e) {
           case "letter":
             if (s === a) {
+              // the letter hasn't changed
               break;
             }
+            // is the tile empty
             this._state = s ? "tbd" : "empty";
+            // store the letter
             this._letter = s;
+            // When a letter is added, make the tile pop
             this._animation = s ? "pop" : "idle";
             break;
           case "evaluation":
             if (!s) break;
+            // This tile is either correct, absent or present
             this._state = s;
             break;
           case "reveal":
+            // Start the reveal animation
             this._animation = "flip-in";
             this._reveal = !0;
             break;
@@ -543,18 +304,23 @@ this.lingo.game = function (glob) {
     }, {
       key: "_update",
       value: function () {
+        // Update the rendering of the tile
         var e = this;
         if (e.$tile) {
+          // Set the text content to the letter
           e.$tile.textContent = e._letter;
+          // Only update the state of the tile if not revealed yet
           if (["empty", "tbd"].includes(e._state)) {
             e.$tile.dataset.state = e._state;
           }
+          // Start the animation
           e.$tile.dataset.animation = e._animation;
         }
       }
     }], [{
       key: "observedAttributes",
       get: function() {
+        // This defines which attributes generate events when changed
         return ["letter", "reveal", "evaluation"];
       }
     }]);
@@ -597,6 +363,9 @@ this.lingo.game = function (glob) {
       var e;
       isInstanceOf(this, returnFunction);
       (e = element.call(this)).attachShadow({ mode: "open" });
+      // Member variables,
+      // the row stores the letters and sets them to the children tiles
+      // also stores an array of evaluation for each letter
       e._letters = "";
       e._evaluation = [];
       return e;
@@ -605,34 +374,50 @@ this.lingo.game = function (glob) {
     addKeyFunction(returnFunction , [{
       key: "evaluation",
       get: function() {
+        // return the array of evaluations for each letter
         return this._evaluation;
       },
       set: function(evaluation) {
+        // when the evaluation array is set
         var currentRow = this;
+        // Store in member variable
         this._evaluation = evaluation;
-        this.$tiles.forEach((function(tile, i) {
-          tile.setAttribute("evaluation", currentRow._evaluation[i]);
+        // Go through the tiles of this row
+        this.$tiles.forEach((function(tile, index) {
+          // Set the attribute of each tile, this will trigger an event
+          // in the tile
+          tile.setAttribute("evaluation", currentRow._evaluation[index]);
+          // Set a timer to reveal the tile delayed by 0.3s time index
           setTimeout((function() {
             tile.setAttribute("reveal", "");
-          }), 300 * i);
+          }), 300 * index);
         }));
       }
     },{
       key: "connectedCallback",
       value: function() {
         var e = this;
+        // Append the HTML to the tag
         e.shadowRoot.appendChild(gameRowElement.content.cloneNode(!0))
+        // Get the row element
         this.$row = this.shadowRoot.querySelector(".row")
+        // Five time
         for (var count = 0; count < 5 /* this._length */; count++) {
+          // Create a tile
           var tile = document.createElement("game-tile");
           if (count === 4) {
-            // last tile gets the attribute set
+            // Last tile gets the last attribute set
             tile.last = !0;
           }
+          // Add tile to current row
           this.$row.appendChild(tile);
         }
+        // Keep a reference to all the tiles in this row,
+        // used to loop through and set letters and animations
         this.$tiles = this.shadowRoot.querySelectorAll("game-tile");
 
+        // Catch the end of the shake animation to remove the invalid attribute
+        // because adding the attribute triggers the animation, so it can't stay
         this.addEventListener("animationend", (function(a) {
           "Shake" === a.animationName && e.removeAttribute("invalid");
         }));
@@ -640,25 +425,35 @@ this.lingo.game = function (glob) {
     }, {
       key: "attributeChangedCallback",
       value: function(e, a, s) {
+        // Catch events when the letter and length attributes are changed
         switch (e) {
           case "letters":
+            // set the letters (or string) in a member variable
             this._letters = s || "";
             break;
           case "length":
+            // Changes the length, doesn't seem to be used anymore
             this._length = parseInt(s, 10);
             break;
         }
+        // Now that variables are stored, trigger events
         this._update();
       }
     }, {
       key: "_update",
       value: function() {
+        // Use member variables to set attributes to tiles
         var e = this;
         if (this.$row) {
+          // Go through tiles
           this.$tiles.forEach((function(tile, index) {
+            // Store the letter in the tile member variable
             var letter = e._letters[index];
+            // If there's a letter
             letter ?
+              // Set the attribute letters, which will trigger events in tiles
               tile.setAttribute("letter", letter) :
+              // Remove letter if no letter is set
               tile.removeAttribute("letter");
           }))
         }
@@ -666,12 +461,12 @@ this.lingo.game = function (glob) {
     }], [{
       key: "observedAttributes",
       get: function() {
+        // Set which attributes trigger an event when changed
         return ["letters", "length"];
       }
     }]
 
   );
-
     return returnFunction;
   }(ConstructElement(HTMLElement));
 
@@ -1469,7 +1264,7 @@ this.lingo.game = function (glob) {
   }(ConstructElement(HTMLElement));
   customElements.define("game-lose", gameLose);
 
-  // Game root
+  // Game root : This is the main element of the game
 
   var gameRootElement = document.createElement("template");
   gameRootElement.innerHTML = `
@@ -1588,17 +1383,30 @@ this.lingo.game = function (glob) {
       isInstanceOf(this, returnFunction);
       (e = element.call(this)).attachShadow({ mode: "open" });
 
+      // Declare all member variables used in the game
+
+      // Current tile index
       addKeyValueToDict(NotInitializedError(e), "tileIndex", 0);
+      // Current row index
       addKeyValueToDict(NotInitializedError(e), "rowIndex", 0);
+      // Complete state of the board, array of strings
       addKeyValueToDict(NotInitializedError(e), "boardState", void 0);
+      // Array of evaluation arrays
       addKeyValueToDict(NotInitializedError(e), "evaluations", void 0);
+      // Keybaord element
       addKeyValueToDict(NotInitializedError(e), "$keyboard", void 0);
+      // Game board element
       addKeyValueToDict(NotInitializedError(e), "$board", void 0);
       addKeyValueToDict(NotInitializedError(e), "$game", void 0);
+      // Current solution
       addKeyValueToDict(NotInitializedError(e), "solution", void 0);
+      // index of the solution in the solution array
       addKeyValueToDict(NotInitializedError(e), "solutionNum", void 0);
+      // Dict of letters to evaluation, used to color the keyboard
       addKeyValueToDict(NotInitializedError(e), "letterEvaluations", void 0);
+      // Current string input by the player
       addKeyValueToDict(NotInitializedError(e), "currentString", void 0);
+      // Can a player input now ? Game finished, etc...
       addKeyValueToDict(NotInitializedError(e), "canInput", !0);
 
       // Most state is stored in the game-root element
@@ -1612,7 +1420,10 @@ this.lingo.game = function (glob) {
       {
         key: "showSettingsFullPage",
         value: function () {
+          // Show settings page
           var modalDiv = this.shadowRoot.querySelector("full-page");
+          // Not sure why a text node is need here, instead of a putting
+          // everything in the game-settings element
           var s = document.createTextNode("Settings");
           modalDiv.appendChild(s);
           var settings = document.createElement("game-settings");
@@ -1639,6 +1450,7 @@ this.lingo.game = function (glob) {
       }, {
         key: "reload",
         value: function(newWord) {
+          // restart the game with a new word
           this.boardState = new Array(6).fill("");
           var rows = this.$board.querySelectorAll("game-row");
           rows.forEach(function (row) {
@@ -1660,6 +1472,7 @@ this.lingo.game = function (glob) {
       }, {
         key: "addLetter",
         value: function(letter) {
+          // Add a letter the the game
           if (this.tileIndex < 5 && this.canInput) {
             this.boardState[this.rowIndex] += letter;
             var row = this.$board.querySelectorAll("game-row");
@@ -1671,6 +1484,7 @@ this.lingo.game = function (glob) {
       }, {
         key: "removeLetter",
         value: function () {
+          // Remove a letter
           if (!(this.tileIndex <= 0)) {
             this.boardState[this.rowIndex] = this.boardState[this.rowIndex]
               .slice(0, this.boardState[this.rowIndex].length - 1);
@@ -1684,6 +1498,7 @@ this.lingo.game = function (glob) {
       }, {
         key: "submitGuess",
         value: function() {
+          // Check if the guess is valid
           if (5 !== this.tileIndex && this.canInput) { // not five letters in the current row
             this.addToast("Not enough letters");
             return this.$board.querySelectorAll("game-row")[this.rowIndex]
@@ -1694,6 +1509,7 @@ this.lingo.game = function (glob) {
       }, {
         key: "evaluateRow",
         value: function() {
+          // Evaluate the current row input by the player
           if (!this.canInput) {
             return;
           }
@@ -1709,10 +1525,12 @@ this.lingo.game = function (glob) {
 
           }
 
+          // This is where the current guess is compared to the solution
           var result = function(guess, solution) {
             var result = Array(solution.length).fill(ABSENT);
             var notCorrect = Array(solution.length).fill(!0);
             var notPresent = Array(solution.length).fill(!0);
+
             // Check for correct letters
             for (var o = 0; o < guess.length; o++) {
               if (guess[o] === solution[o] && notCorrect[o]) {
@@ -1721,7 +1539,7 @@ this.lingo.game = function (glob) {
                 notPresent[o] = !1;
               }
             }
-
+            // Check for present letters (but misplaced)
             for (var r = 0; r < guess.length; r++) {
               var i = guess[r];
               if (notCorrect[r])
@@ -1737,24 +1555,22 @@ this.lingo.game = function (glob) {
             return result;
           }(this.currentString, this.solution);
 
+          // Add the evaluation results to member variable
           this.evaluations[this.rowIndex] = result;
+          // Get an array of evaluation by letter
           this.letterEvaluations = buildLetterEvaluation(
             this.boardState, this.evaluations
           );
           // This will trigger a UI update
           currentRow.evaluation = this.evaluations[this.rowIndex];
+          // Increase row counter and set tile index back to 0
           this.rowIndex += 1;
           this.tileIndex = 0;
-
-          // if (solutions.includes(wordToInt(currentString))) {
-          //   var modalDiv = this.shadowRoot.querySelector("game-modal")
-          //   modalDiv.appendChild(document.createElement("game-win"));
-          //   modalDiv.setAttribute("open", "");
-          // }
         }
       }, {
         key: "addToast",
         value: function(e, a) {
+          // Show a toast with a message to the player
           var s = arguments.length > 2 &&
             void 0 !== arguments[2] && arguments[2];
           var t = document.createElement("game-toast");
@@ -1769,8 +1585,12 @@ this.lingo.game = function (glob) {
       }, {
         key: "connectedCallback",
         value: function () {
+          // Initialize the member variables and install event listeners
           var gameRootThis = this;
+          // Append the hthml of the game-root element
           this.shadowRoot.appendChild(gameRootElement.content.cloneNode(!0));
+
+          // Add event listeners to menu buttons
           this.shadowRoot.getElementById("settings-button").
              addEventListener("click", (function(e) {
                gameRootThis.showSettingsFullPage();
@@ -1784,6 +1604,7 @@ this.lingo.game = function (glob) {
                 gameRootThis.reload(true);
               }));
 
+          // Add keyboard event listeners
           this.addEventListener("game-key-press", (function(e) {
             var letter = e.detail.key;
             if (letter === "BACK" || letter === "Backspace") {
@@ -1795,6 +1616,9 @@ this.lingo.game = function (glob) {
             }
           }));
 
+          // Catches the reload-game event, custom event is used because it is
+          // triggered by the reload button in the menu and the event bubbles
+          // up to the game-root element
           this.addEventListener("reload-game", function(e) {
             if (e.detail.key === "new-word") {
               this.reload(true);
@@ -1805,6 +1629,8 @@ this.lingo.game = function (glob) {
             }
           });
 
+          // Catches the last tile revealed event, to check if the game was
+          // either won or lost
           this.addEventListener("game-last-tile-revealed-in-row",
             (function(e) {
               gameRootThis.$keyboard.letterEvaluations =
@@ -1822,24 +1648,32 @@ this.lingo.game = function (glob) {
               }
             }));
 
+          // Set member variables
           this.$board = this.shadowRoot.querySelector("#board");
 					this.$keyboard = this.shadowRoot.querySelector("game-keyboard");
-          // this.$game = this.shadowRoot.querySelector("game-root");
 
+          // Do 6 times
           for (var c = 0; c < 6; c++) {
+            // Create row, this will trigger connectedCallback events
+            // in the row element, creating tiles
             var u = document.createElement("game-row");
-            // u.setAttribute("letters", this.boardState[c]);
-            u.setAttribute("length", 5);
-            // this.evaluations[c] && (u.evaluation = this.evaluations[c]),
 
+            // Set a length attribute, does not seem to be used
+            u.setAttribute("length", 5);
+
+            // Append the row to the board
             this.$board.appendChild(u)
           }
+          // Resize board if needed
           this.sizeBoard();
+
+          // Get a new word to play
           this.reload(true);
         }
       }, {
         key: "sizeBoard",
         value: function() {
+          // Resize board if needed
           var e = this.shadowRoot.querySelector("#board-container");
           var a = Math.min(Math.floor(e.clientHeight * (5 / 6)), 350);
           var s = 6 * Math.floor(a / 5);
@@ -1854,6 +1688,303 @@ this.lingo.game = function (glob) {
 
   customElements.define("game-root", gameRoot);
 
+  // Icons
+
+  // View size for each icon, to size them correctly
+  var iconSizes = {
+    help: "0 0 22 22",
+    settings: "0 0 45 45",
+    graph: "0 0 300 300",
+    reload: "0 0 500 500",
+    close: "0 0 22 22",
+  };
+
+  // Pathes use bezier curves, you can visualize each components here:
+  // https://svg-path-visualizer.netlify.app
+  // Library of svg paths:
+  // https://www.svgrepo.com/
+  var iconPaths = {
+    graph: `M287.183,243.393l-27.577-27.577c-5.857-5.857-15.355-5.857
+      -21.213,0 c-5.858,5.857-5.858,15.355,0,21.213l1.971,1.971 H62.577
+      V51.212l1.971,1.971c5.858,5.859,15.355,5.858,21.213,0c5.858-5.857,5.858
+      -15.355,0-21.213L58.183,4.393 c-5.857-5.857-15.355-5.857-21.213,0L9.393
+      ,31.97c-5.858,5.857-5.858,15.355,0,21.213c5.857,5.858,15.355,5.858,
+      21.213,0l1.971-1.971V254c0,8.284,6.716,15,15,15h192.787l-1.971,1.971c
+      -5.858,5.857-5.858,15.355,0,21.213 c5.858,5.859,15.355,5.858,21.213,0
+      l27.577-27.577C293.042,258.749,293.042,249.25,287.183,243.393z M103.089
+      ,183.288c-8.284,0-15,6.716-15,15c0,8.284,6.716,15,15,15h98c8.284,0,15
+      -6.716,15-15c0-8.284-6.716-15-15-15 H103.089z M103.089,88.288h76c8.284,
+      0,15-6.716,15-15c0-8.284-6.716-15-15-15h-76c-8.284,0-15,6.716-15,15
+      C88.089,81.572,94.804,88.288,103.089,88.288z M88.089,135.788c0,8.284,
+      6.716,15,15,15h165c8.284,0,15-6.716,15-15c0-8.284-6.716-15-15-15h-165
+      C94.804,120.788,88.089,127.503,88.089,135.788z`,
+    settings: `
+      M43.454,18.443h-2.437c-0.453-1.766-1.16-3.42-2.082-4.933l1.752-1.756
+      c0.473-0.473,0.733-1.104,0.733-1.774 c0-0.669-0.262-1.301-0.733-1.773
+      l-2.92-2.917c-0.947-0.948-2.602-0.947-3.545-0.001l-1.826,1.815
+      C30.9,6.232,29.296,5.56,27.529,5.128V2.52c0-1.383-1.105-2.52-2.488-2.52
+      h-4.128c-1.383,0-2.471,1.137-2.471,2.52v2.607  c-1.766,0.431-3.38,1.104
+      -4.878,1.977l-1.825-1.815c-0.946-0.948-2.602-0.947-3.551-0.001L5.27,
+      8.205 C4.802,8.672,4.535,9.318,4.535,9.978c0,0.669,0.259,1.299,0.733,
+      1.772l1.752,1.76c-0.921,1.513-1.629,3.167-2.081,4.933H2.501 C1.117,
+      18.443,0,19.555,0,20.935v4.125c0,1.384,1.117,2.471,2.501,2.471h2.438
+      c0.452,1.766,1.159,3.43,2.079,4.943l-1.752,1.763 c-0.474,0.473-0.734,
+      1.106-0.734,1.776s0.261,1.303,0.734,1.776l2.92,2.919c0.474,0.473,1.103,
+      0.733,1.772,0.733 s1.299-0.261,1.773-0.733l1.833-1.816c1.498,0.873,
+      3.112,1.545,4.878,1.978v2.604c0,1.383,1.088,2.498,2.471,2.498h4.128
+      c1.383,0,2.488-1.115,2.488-2.498v-2.605c1.767-0.432,3.371-1.104,4.869
+      -1.977l1.817,1.812c0.474,0.475,1.104,0.735,1.775,0.735 c0.67,0,1.301
+      -0.261,1.774-0.733l2.92-2.917c0.473-0.472,0.732-1.103,0.734-1.772
+      c0-0.67-0.262-1.299-0.734-1.773l-1.75-1.77 c0.92-1.514,1.627-3.179,
+      2.08-4.943h2.438c1.383,0,2.52-1.087,2.52-2.471v-4.125C45.973,19.555,
+      44.837,18.443,43.454,18.443z M22.976,30.85c-4.378,0-7.928-3.517-7.928
+      -7.852c0-4.338,3.55-7.85,7.928-7.85c4.379,0,7.931,3.512,7.931,7.85
+      C30.906,27.334,27.355,30.85,22.976,30.85z
+    `,
+    help: `
+      M12 6a3.939 3.939 0 0 0-3.934 3.934h2C10.066 8.867 10.934 8 12 8
+      s1.934.867 1.934 1.934c0 .598-.481 1.032-1.216 1.626a9.208 9.208 0 0 0
+      -.691.599c-.998.997-1.027 2.056-1.027 2.174V15h2l-.001-.633c.001
+      -.016.033-.386.441-.793.15-.15.339-.3.535-.458.779-.631 1.958-1.584
+      1.958-3.182A3.937 3.937 0 0 0 12 6zm-1 10h2v2h-2z M12 2C6.486 2 2 6.486
+      2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589
+      -8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z
+    `,
+    reload: `
+      M268.175,488.161c98.2-11,176.9-89.5,188.1-187.7c14.7-128.4-85.1-237.7
+      -210.2-239.1v-57.6c0-3.2-4-4.9-6.7-2.9 l-118.6,87.1c-2,1.5-2,4.4,0,5.9
+      l118.6,87.1c2.7,2,6.7,0.2,6.7-2.9v-57.5c87.9,1.4,158.3,76.2,152.3,165.6
+      c-5.1,76.9-67.8,139.3-144.7,144.2c-81.5,5.2-150.8-53-163.2-130c-2.3
+      -14.3-14.8-24.7-29.2-24.7c-17.9,0-31.9,15.9-29.1,33.6 C49.575,418.961,
+      150.875,501.261,268.175,488.161z
+    `,
+    close: `M13.41 12l4.3-4.29a1 1 0 1 0-1.42-1.42L12 10.59l-4.29-4.3a1 1 0 0
+      0-1.42 1.42l4.3 4.29-4.3 4.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l4.29
+      -4.3 4.29 4.3a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42z
+    `
+  };
+
+  // Define the HTML of an icon
+  var iconElement = document.createElement("template");
+  iconElement.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"
+      height="24" width="24">
+      <path fill=var(--color-tone-1) />
+    </svg>
+  `;
+
+  var icon = function(htmlElement) {
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+      return e;
+    }
+
+    addKeyFunction(returnFunction , [{
+      key: "connectedCallback",
+      value: function() {
+        // Append the html to the shadowroot
+        this.shadowRoot.appendChild(iconElement.content.cloneNode(!0));
+
+        // Set the svg path
+        var e = this.getAttribute("icon");
+        this.shadowRoot.querySelector("path")
+          .setAttribute("d", iconPaths[e]);
+        // Set the view box, to get the correctly sized icon
+        this.shadowRoot.querySelector("svg")
+          .setAttribute("viewBox", iconSizes[e]);
+      }
+    }]);
+
+    return returnFunction;
+  }(ConstructElement(HTMLElement));
+
+  customElements.define("game-icon", icon);
+
+  // Solutions and words encoding, to avoid cleartext solutions in the source
+    function wordToInt(word) {
+    var result = 0;
+    word.split("").forEach(
+      function(c, i) {
+        result += getIndex(c) * (26 ** i);
+       }
+    );
+    return result;
+  }
+
+  function intToWord(val) {
+    var result = "";
+    var i = 5; // This eats the a at word end : log(26, val);
+    for (i ; i > 0; i--) {
+      var letterValue = Math.floor(val / (26**(i-1)));
+      val -= letterValue * (26**(i-1));
+      result = String.fromCharCode(97 + letterValue) + result;
+    }
+    return result;
+  }
+
+  function getIndex(letter) {
+    return letter.charCodeAt()-97;
+  }
+
+  function log(base, number) {
+    return Math.ceil(Math.log(number) / Math.log(base));
+  }
+
+  // Function magic to create new tags
+
+  // Add connectedCallback and such functions
+  function addKeyFunction(e, a, s) {
+    return a && addDictToElement(e.prototype, a), s &&
+      addDictToElement(e, s), e;
+  }
+
+  function addDictToElement(elementToBuild, functionDict) {
+    for (var s = 0; s < functionDict.length; s++) {
+      var t = functionDict[s];
+      t.enumerable = t.enumerable || !1,
+      t.configurable = !0,
+      "value" in t && (t.writable = !0),
+      Object.defineProperty(elementToBuild, t.key, t)
+    }
+  }
+
+  // Adds member variables to an object
+  function addKeyValueToDict(e /* dict */, a /* string */, s /* integer */) {
+        return a in e ? Object.defineProperty(e, a, {
+            value: s,
+            enumerable: !0,
+            configurable: !0,
+            writable: !0
+        }) : e[a] = s, e
+    }
+
+  // Checks that a variable is initialized
+  function NotInitializedError(e) {
+    if (void 0 === e)
+      throw new ReferenceError(
+        "this hasn't been initialised - super() hasn't been called");
+    return e;
+  }
+
+  // This needs reflect to work
+  function isReflectAvailable() {
+    if ("undefined" == typeof Reflect || !Reflect.construct) {
+      // Only undefined in Internet explorer
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/.
+      // ./Reference/Global_Objects/Reflect
+      return !1; // false
+    }
+    if (Reflect.construct.sham) {
+      return !1; // false
+    }
+
+    if ("function" == typeof Proxy) return !0; // True
+
+    try {
+      return Boolean.prototype.valueOf.call(Reflect.construct(
+        Boolean, [], (function() {}))), !0
+    } catch (e) {
+      return !1 // False
+    }
+  }
+
+  function set__proto__(returnFunction, htmlElement) {
+    return function (returnFunction, htmlElement) {
+      return returnFunction.__proto__ = htmlElement, returnFunction;
+    }(returnFunction, htmlElement);
+  }
+
+  function setPrototype(returnFunction, htmlElement) {
+    if ("function" != typeof htmlElement && null !== htmlElement)
+    throw new TypeError("Super expression must either be null or a function");
+
+    returnFunction.prototype = Object.create(htmlElement.prototype, {
+      constructor: {
+        value: returnFunction,
+        writable: !0, // true
+        configurable: !0 // true
+      }
+    });
+    set__proto__(returnFunction, htmlElement)
+  }
+
+  function ReflectConstructApply(e, a, s) {
+    var res = Reflect.construct.apply(null, arguments);
+    return res;
+  }
+
+  function isInstanceOf(e, a) {
+    if (!(e instanceof a))
+    throw new TypeError("Cannot call a class as a function")
+  }
+
+  function getPrototypeOf(returnFunction) {
+    if (Object.setPrototypeOf) {
+      return Object.getPrototypeOf (returnFunction);
+    } else {
+      return function(returnFunction) {
+        return returnFunction.__proto__ ||
+          Object.getPrototypeOf(returnFunction);
+      } (returnFunction);
+    }
+  }
+
+
+  function constructElement(returnFunction) {
+    return function() {
+      var htmlElement;
+      addDictToElement = getPrototypeOf(returnFunction);
+
+      if (isReflectAvailable()) {
+        var n = getPrototypeOf(this).constructor;
+        htmlElement = Reflect.construct(
+          addDictToElement, /* target */
+          arguments, /* argument list */
+          n /* new target, constructor whose prototype is going to be used */ )
+      } else htmlElement = addDictToElement.apply(this, arguments);
+
+      isInitialized(this, htmlElement)
+      return htmlElement;
+    }
+  }
+
+  // Verify that e or a is initialized
+  function isInitialized(e, a) {
+    var result = (!a || "object" != typeof a &&
+      "function" != typeof a ? NotInitializedError(e) : a);
+    return result;
+  }
+
+  // First function called to build an element
+  // with HTMLElement as argument
+  function ConstructElement(lHTMLElement) {
+
+    var returnElement = function (htmlElement) {
+      function t() {
+        return ReflectConstructApply(
+          htmlElement, arguments, getPrototypeOf(this).constructor);
+      }
+
+      t.prototype = Object.create(htmlElement.prototype, {
+        constructor: {
+          value: t,
+          enumerable: !1,
+          writable: !0,
+          configurable: !0
+        }
+      });
+
+      return set__proto__(t, lHTMLElement);
+    }(lHTMLElement);
+
+    return returnElement;
+  }
+
   // Return all relevant objects
   glob.Game = gameRoot;
   glob.intToWord = intToWord;
@@ -1862,6 +1993,7 @@ this.lingo.game = function (glob) {
 
 }({});
 
+// All the solutions encoded
 var solutions =
 [7772858, 9034861, 11296186, 3471111, 2004236, 3529007, 5028457, 1881182,
 5040945, 2208614, 3532887, 2584247, 5099444, 222414, 4804168, 1881080,
@@ -2153,6 +2285,8 @@ var solutions =
 6085727, 8720638, 7843333, 5041157, 1981714, 8826653, 345800, 8889478,
 1935917, 7854149, 11297078, 5038765, 2197200];
 
+
+// All the valid words
 var allWords = [1445964,3803852,3315780,4001244,35178,3690986,8260746,
 8770450,175786,7065578,1599442,3515226,4886154,421850,
 8226270,1441934,8296574,1899586,5486442,7771322,2023970,
