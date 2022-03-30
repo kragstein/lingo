@@ -55,7 +55,7 @@ this.lingo.game = function (glob) {
     return letterEvaluationDict;
   }
 
-  // Toasts are the message box displaying error messages such as:
+  // Toasts are the message boxes displaying error messages such as:
   // Not enough letters, Not in word list, etc
 
   // Define the html for the <toast> tag
@@ -126,6 +126,431 @@ this.lingo.game = function (glob) {
   customElements.define("game-toast", gameToast);
 
   // Game board
+
+  // Game root : This is the main element of the game
+
+  var gameRootElement = document.createElement("template");
+  gameRootElement.innerHTML = `
+    <style>
+      header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        padding: 0 16px;
+        height: var(--header-height);
+        color: var(--color-tone-1);
+        border-bottom: 1px solid var(--color-tone-4);
+      }
+      header .title {
+        font-weight: 700;
+        font-size: 37px;
+        line-height: 100%;
+        letter-spacing: 0.01em;
+        text-align: center;
+        left: 0;
+        right: 0;
+        pointer-events: none;
+      }
+      #game {
+        width: 100%;
+        max-width: var(--game-max-width);
+        margin: 0 auto;
+        height: calc(100% - var(--header-height) - var(--keyboard-height));
+        display: flex;
+        flex-direction: column;
+      }
+      #board-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-grow: 1;
+        overflow: hidden;
+      }
+      #board {
+        display: grid;
+        grid-template-rows: repeat(6, 1fr);
+        grid-gap: 5px;
+        padding:10px;
+        box-sizing: border-box;
+      }
+      button.icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0 4px;
+      }
+      game-keyboard {
+        width: 100%;
+        max-width: var(--game-max-width);
+        margin: 0 auto;
+        height: calc(100% - var(--header-height));
+        display: flex;
+        flex-direction: column;
+      }
+      .toaster {
+        position: absolute;
+        top: 10%;
+        left: 50%;
+        transform: translate(-50%, 0);
+        pointer-events: none;
+        width: fit-content;
+      }
+      #game-toaster {
+        z-index: 1000;
+      }
+      #system-toaster {
+        z-index: 4000;
+      }
+    </style>
+    <header>
+      <div class="menu-left">
+        <button id="test-button" class="icon" tabindex="-1">
+          <game-icon icon="graph"></game-icon>
+        </button>
+        <button id="help-button" class="icon" tabindex="-1">
+          <game-icon icon="help"></game-icon>
+        </button>
+      </div>
+      <div class="title">Lingo</div>
+      <div class="menu-right">
+        <button id="reload-button" class="icon" tabindex="-1">
+          <game-icon icon="reload"></game-icon>
+        </button>
+        <button id="settings-button" class="icon" tabindex="-1">
+          <game-icon icon="settings"></game-icon>
+        </button>
+      </div>
+    </header>
+    <div id="game">
+      <div id="board-container">
+        <div id="board">
+        </div>
+      </div>
+    </div>
+    <game-keyboard></game-keyboard>
+    <div class="toaster" id="game-toaster"></div>
+    <div class="toaster" id="system-toaster"></div>
+    <game-modal></game-modal>
+    <full-page></full-page>
+  `;
+
+  var gameRoot = function (htmlElement) {
+
+    setPrototype(returnFunction, htmlElement);
+    var element = constructElement(returnFunction);
+
+    function returnFunction() {
+      var e;
+      isInstanceOf(this, returnFunction);
+      (e = element.call(this)).attachShadow({ mode: "open" });
+
+      // Declare all member variables used in the game
+
+      // Current tile index
+      addKeyValueToDict(NotInitializedError(e), "tileIndex", 0);
+      // Current row index
+      addKeyValueToDict(NotInitializedError(e), "rowIndex", 0);
+      // Complete state of the board, array of strings
+      addKeyValueToDict(NotInitializedError(e), "boardState", void 0);
+      // Array of evaluation arrays
+      addKeyValueToDict(NotInitializedError(e), "evaluations", void 0);
+      // Keybaord element
+      addKeyValueToDict(NotInitializedError(e), "$keyboard", void 0);
+      // Game board element
+      addKeyValueToDict(NotInitializedError(e), "$board", void 0);
+      addKeyValueToDict(NotInitializedError(e), "$game", void 0);
+      // Current solution
+      addKeyValueToDict(NotInitializedError(e), "solution", void 0);
+      // index of the solution in the solution array
+      addKeyValueToDict(NotInitializedError(e), "solutionNum", void 0);
+      // Dict of letters to evaluation, used to color the keyboard
+      addKeyValueToDict(NotInitializedError(e), "letterEvaluations", void 0);
+      // Current string input by the player
+      addKeyValueToDict(NotInitializedError(e), "currentString", void 0);
+      // Can a player input now ? Game finished, etc...
+      addKeyValueToDict(NotInitializedError(e), "canInput", !0);
+
+      // Most state is stored in the game-root element
+      e.boardState = new Array(6).fill("");
+      e.evaluations = new Array(6).fill(null);
+
+      return e;
+    }
+
+    addKeyFunction(returnFunction , [
+      {
+        key: "showSettingsFullPage",
+        value: function () {
+          // Show settings page
+          var modalDiv = this.shadowRoot.querySelector("full-page");
+          // Not sure why a text node is need here, instead of a putting
+          // everything in the game-settings element
+          var s = document.createTextNode("Settings");
+          modalDiv.appendChild(s);
+          var settings = document.createElement("game-settings");
+          settings.setAttribute("page", "");
+          settings.setAttribute("slot", "content");
+          modalDiv.appendChild(settings);
+          modalDiv.setAttribute("open", "");
+        }
+      }, {
+        key: "showHelpFullPage",
+        value: function () {
+          // var modalDiv = this.querySelector("#game-help");
+          var modalDiv = this.shadowRoot.querySelector("full-page")
+          // No idea why we need to create a TextNode here,
+          // The whole tag tree is messed up after...
+          // var s = document.createTextNode("How to play");
+          // modalDiv.appendChild(s);
+          var t = document.createElement("game-help");
+          t.setAttribute("page", "");
+          t.setAttribute("slot", "content");
+          modalDiv.appendChild(t);
+          modalDiv.setAttribute("open", "");
+        }
+      }, {
+        key: "reload",
+        value: function(newWord) {
+          // restart the game with a new word
+          this.boardState = new Array(6).fill("");
+          var rows = this.$board.querySelectorAll("game-row");
+          rows.forEach(function (row) {
+            row.removeAttribute("letters");
+          });
+          if (newWord) {
+            this.solutionNum = Math.floor(Math.random()*solutions.length);
+            solutionNum = this.solutionNum;
+            this.solution = intToWord(
+              solutions[this.solutionNum]);
+
+          }
+          this.rowIndex = 0;
+          this.letterEvaluations = {};
+          this.$keyboard.reload();
+          this.canInput = !0;
+          console.log("Oops:", this.solution);
+        }
+      }, {
+        key: "addLetter",
+        value: function(letter) {
+          // Add a letter the the game
+          if (this.tileIndex < 5 && this.canInput) {
+            this.boardState[this.rowIndex] += letter;
+            var row = this.$board.querySelectorAll("game-row");
+            row[this.rowIndex].setAttribute("letters",
+              this.boardState[this.rowIndex]);
+            this.tileIndex += 1;
+          }
+        }
+      }, {
+        key: "removeLetter",
+        value: function () {
+          // Remove a letter
+          if (!(this.tileIndex <= 0)) {
+            this.boardState[this.rowIndex] = this.boardState[this.rowIndex]
+              .slice(0, this.boardState[this.rowIndex].length - 1);
+            var row = this.$board.querySelectorAll("game-row")[this.rowIndex];
+            this.boardState[this.rowIndex] ?
+              row.setAttribute("letters", this.boardState[this.rowIndex]) :
+              row.removeAttribute("letters");
+            this.tileIndex -= 1;
+          }
+        }
+      }, {
+        key: "submitGuess",
+        value: function() {
+          // Check if the guess is valid
+          if (5 !== this.tileIndex && this.canInput) {
+            // not five letters in the current row
+            this.addToast("Not enough letters");
+            return this.$board.querySelectorAll("game-row")[this.rowIndex]
+            .setAttribute("invalid", ""); // set attribute shakes the row
+          }
+          this.evaluateRow();
+        }
+      }, {
+        key: "evaluateRow",
+        value: function() {
+          // Evaluate the current row input by the player
+          if (!this.canInput) {
+            return;
+          }
+          var currentRow =
+            this.$board.querySelectorAll("game-row")[this.rowIndex];
+          this.currentString = this.boardState[this.rowIndex];
+          if (this.currentString &&
+              !allWords.includes(wordToInt(this.currentString)) &&
+              !solutions.includes(wordToInt(this.currentString))) {
+            // Not in either word list
+            this.addToast("Not in word list");
+            return currentRow.setAttribute("invalid", "");
+
+          }
+
+          // This is where the current guess is compared to the solution
+          var result = function(guess, solution) {
+            var result = Array(solution.length).fill(ABSENT);
+            var notCorrect = Array(solution.length).fill(!0);
+            var notPresent = Array(solution.length).fill(!0);
+
+            // Check for correct letters
+            for (var o = 0; o < guess.length; o++) {
+              if (guess[o] === solution[o] && notCorrect[o]) {
+                result[o] = CORRECT;
+                notCorrect[o] = !1;
+                notPresent[o] = !1;
+              }
+            }
+            // Check for present letters (but misplaced)
+            for (var r = 0; r < guess.length; r++) {
+              var i = guess[r];
+              if (notCorrect[r])
+              for (var l = 0; l < solution.length; l++) {
+                var d = solution[l];
+                if (notPresent[l] && i === d) {
+                  result[r] = PRESENT;
+                  notPresent[l] = !1;
+                  break;
+                }
+              }
+            }
+            return result;
+          }(this.currentString, this.solution);
+
+          // Add the evaluation results to member variable
+          this.evaluations[this.rowIndex] = result;
+          // Get an array of evaluation by letter
+          this.letterEvaluations = buildLetterEvaluation(
+            this.boardState, this.evaluations
+          );
+          // This will trigger a UI update
+          currentRow.evaluation = this.evaluations[this.rowIndex];
+          // Increase row counter and set tile index back to 0
+          this.rowIndex += 1;
+          this.tileIndex = 0;
+        }
+      }, {
+        key: "addToast",
+        value: function(e, a) {
+          // Show a toast with a message to the player
+          var s = arguments.length > 2 &&
+            void 0 !== arguments[2] && arguments[2];
+          var t = document.createElement("game-toast");
+          t.setAttribute("text", e);
+          a && t.setAttribute("duration", a);
+          if (s) {
+            this.shadowRoot.querySelector("#system-toaster").prepend(t);
+          } else {
+            this.shadowRoot.querySelector("#game-toaster").prepend(t);
+          }
+        }
+      }, {
+        key: "connectedCallback",
+        value: function () {
+          // Initialize the member variables and install event listeners
+          var gameRootThis = this;
+          // Append the hthml of the game-root element
+          this.shadowRoot.appendChild(gameRootElement.content.cloneNode(!0));
+
+          // Add event listeners to menu buttons
+          this.shadowRoot.getElementById("settings-button").
+             addEventListener("click", (function(e) {
+               gameRootThis.showSettingsFullPage();
+             }));
+          this.shadowRoot.getElementById("help-button").
+             addEventListener("click", (function(e) {
+               gameRootThis.showHelpFullPage();
+             }));
+          this.shadowRoot.getElementById("reload-button").
+              addEventListener("click", (function(e) {
+                gameRootThis.reload(true);
+              }));
+
+          // Add keyboard event listeners
+          this.addEventListener("game-key-press", (function(e) {
+            var letter = e.detail.key;
+            if (letter === "BACK" || letter === "Backspace") {
+              this.removeLetter();
+            } else if (letter === "ENTER" || letter === "Enter") {
+              this.submitGuess();
+            } else if (alphabet.includes(letter.toLowerCase())) {
+              this.addLetter(letter);
+            }
+          }));
+
+          // Catches the reload-game event, custom event is used because it is
+          // triggered by the reload button in the menu and the event bubbles
+          // up to the game-root element
+          this.addEventListener("reload-game", function(e) {
+            if (e.detail.key === "new-word") {
+              this.reload(true);
+            } else if (e.detail.key === "same-word") {
+              this.reload(false);
+            } else {
+              this.reload(true);
+            }
+          });
+
+          // Catches the last tile revealed event, to check if the game was
+          // either won or lost
+          this.addEventListener("game-last-tile-revealed-in-row",
+            (function(e) {
+              gameRootThis.$keyboard.letterEvaluations =
+                gameRootThis.letterEvaluations;
+              if (this.solution === this.currentString) {
+                this.canInput = !1;
+                var modalDiv = this.shadowRoot.querySelector("game-modal")
+                modalDiv.appendChild(document.createElement("game-win"));
+                modalDiv.setAttribute("open", "");
+              } else if (this.rowIndex > 5) {
+                var modalDiv = this.shadowRoot.querySelector("game-modal")
+                modalDiv.appendChild(document.createElement("game-lose"));
+                modalDiv.setAttribute("open", "");
+                this.canInput = !1;
+              }
+            }));
+
+          // Set member variables
+          this.$board = this.shadowRoot.querySelector("#board");
+          this.$keyboard = this.shadowRoot.querySelector("game-keyboard");
+
+          // Do 6 times
+          for (var c = 0; c < 6; c++) {
+            // Create row, this will trigger connectedCallback events
+            // in the row element, creating tiles
+            var u = document.createElement("game-row");
+
+            // Set a length attribute, does not seem to be used
+            u.setAttribute("length", 5);
+
+            // Append the row to the board
+            this.$board.appendChild(u)
+          }
+          // Resize board if needed
+          this.sizeBoard();
+
+          // Get a new word to play
+          this.reload(true);
+        }
+      }, {
+        key: "sizeBoard",
+        value: function() {
+          // Resize board
+          var e = this.shadowRoot.querySelector("#board-container");
+          var a = Math.min(Math.floor(e.clientHeight * (5 / 6)), 350);
+          var s = 6 * Math.floor(a / 5);
+          this.$board.style.width = "".concat(a, "px");
+          this.$board.style.height = "".concat(s, "px");
+        }
+      }
+    ]);
+
+    return returnFunction;
+  }(ConstructElement(HTMLElement));
+
+  customElements.define("game-root", gameRoot);
 
   // Game Tile
   // Each letter on the 5 by 6 board is a tile
@@ -1263,430 +1688,6 @@ this.lingo.game = function (glob) {
     return returnFunction;
   }(ConstructElement(HTMLElement));
   customElements.define("game-lose", gameLose);
-
-  // Game root : This is the main element of the game
-
-  var gameRootElement = document.createElement("template");
-  gameRootElement.innerHTML = `
-    <style>
-      header {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: nowrap;
-        padding: 0 16px;
-        height: var(--header-height);
-        color: var(--color-tone-1);
-        border-bottom: 1px solid var(--color-tone-4);
-      }
-      header .title {
-        font-weight: 700;
-        font-size: 37px;
-        line-height: 100%;
-        letter-spacing: 0.01em;
-        text-align: center;
-        left: 0;
-        right: 0;
-        pointer-events: none;
-      }
-      #game {
-  			width: 100%;
-  			max-width: var(--game-max-width);
-  			margin: 0 auto;
-  			height: calc(100% - var(--header-height) - var(--keyboard-height));
-  			display: flex;
-  			flex-direction: column;
-      }
-      #board-container {
-  			display: flex;
-  			justify-content: center;
-  			align-items: center;
-  			flex-grow: 1;
-  			overflow: hidden;
-  		}
-  		#board {
-  			display: grid;
-  			grid-template-rows: repeat(6, 1fr);
-  			grid-gap: 5px;
-  			padding:10px;
-  			box-sizing: border-box;
-  		}
-      button.icon {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0 4px;
-      }
-      game-keyboard {
-  			width: 100%;
-  			max-width: var(--game-max-width);
-  			margin: 0 auto;
-  			height: calc(100% - var(--header-height));
-  			display: flex;
-  			flex-direction: column;
-  		}
-      .toaster {
-        position: absolute;
-        top: 10%;
-        left: 50%;
-        transform: translate(-50%, 0);
-        pointer-events: none;
-        width: fit-content;
-      }
-      #game-toaster {
-        z-index: 1000;
-      }
-      #system-toaster {
-        z-index: 4000;
-      }
-    </style>
-    <header>
-      <div class="menu-left">
-				<button id="test-button" class="icon" tabindex="-1">
-					<game-icon icon="graph"></game-icon>
-				</button>
-        <button id="help-button" class="icon" tabindex="-1">
-					<game-icon icon="help"></game-icon>
-				</button>
-			</div>
-      <div class="title">Lingo</div>
-      <div class="menu-right">
-        <button id="reload-button" class="icon" tabindex="-1">
-          <game-icon icon="reload"></game-icon>
-        </button>
-				<button id="settings-button" class="icon" tabindex="-1">
-					<game-icon icon="settings"></game-icon>
-				</button>
-			</div>
-    </header>
-    <div id="game">
-      <div id="board-container">
-        <div id="board">
-        </div>
-      </div>
-    </div>
-    <game-keyboard></game-keyboard>
-    <div class="toaster" id="game-toaster"></div>
-    <div class="toaster" id="system-toaster"></div>
-    <game-modal></game-modal>
-    <full-page></full-page>
-  `;
-
-  var gameRoot = function (htmlElement) {
-
-    setPrototype(returnFunction, htmlElement);
-    var element = constructElement(returnFunction);
-
-    function returnFunction() {
-      var e;
-      isInstanceOf(this, returnFunction);
-      (e = element.call(this)).attachShadow({ mode: "open" });
-
-      // Declare all member variables used in the game
-
-      // Current tile index
-      addKeyValueToDict(NotInitializedError(e), "tileIndex", 0);
-      // Current row index
-      addKeyValueToDict(NotInitializedError(e), "rowIndex", 0);
-      // Complete state of the board, array of strings
-      addKeyValueToDict(NotInitializedError(e), "boardState", void 0);
-      // Array of evaluation arrays
-      addKeyValueToDict(NotInitializedError(e), "evaluations", void 0);
-      // Keybaord element
-      addKeyValueToDict(NotInitializedError(e), "$keyboard", void 0);
-      // Game board element
-      addKeyValueToDict(NotInitializedError(e), "$board", void 0);
-      addKeyValueToDict(NotInitializedError(e), "$game", void 0);
-      // Current solution
-      addKeyValueToDict(NotInitializedError(e), "solution", void 0);
-      // index of the solution in the solution array
-      addKeyValueToDict(NotInitializedError(e), "solutionNum", void 0);
-      // Dict of letters to evaluation, used to color the keyboard
-      addKeyValueToDict(NotInitializedError(e), "letterEvaluations", void 0);
-      // Current string input by the player
-      addKeyValueToDict(NotInitializedError(e), "currentString", void 0);
-      // Can a player input now ? Game finished, etc...
-      addKeyValueToDict(NotInitializedError(e), "canInput", !0);
-
-      // Most state is stored in the game-root element
-      e.boardState = new Array(6).fill("");
-      e.evaluations = new Array(6).fill(null);
-
-      return e;
-    }
-
-    addKeyFunction(returnFunction , [
-      {
-        key: "showSettingsFullPage",
-        value: function () {
-          // Show settings page
-          var modalDiv = this.shadowRoot.querySelector("full-page");
-          // Not sure why a text node is need here, instead of a putting
-          // everything in the game-settings element
-          var s = document.createTextNode("Settings");
-          modalDiv.appendChild(s);
-          var settings = document.createElement("game-settings");
-          settings.setAttribute("page", "");
-          settings.setAttribute("slot", "content");
-          modalDiv.appendChild(settings);
-          modalDiv.setAttribute("open", "");
-        }
-      }, {
-        key: "showHelpFullPage",
-        value: function () {
-          // var modalDiv = this.querySelector("#game-help");
-          var modalDiv = this.shadowRoot.querySelector("full-page")
-          // No idea why we need to create a TextNode here,
-          // The whole tag tree is messed up after...
-          // var s = document.createTextNode("How to play");
-          // modalDiv.appendChild(s);
-          var t = document.createElement("game-help");
-          t.setAttribute("page", "");
-          t.setAttribute("slot", "content");
-          modalDiv.appendChild(t);
-          modalDiv.setAttribute("open", "");
-        }
-      }, {
-        key: "reload",
-        value: function(newWord) {
-          // restart the game with a new word
-          this.boardState = new Array(6).fill("");
-          var rows = this.$board.querySelectorAll("game-row");
-          rows.forEach(function (row) {
-            row.removeAttribute("letters");
-          });
-          if (newWord) {
-            this.solutionNum = Math.floor(Math.random()*solutions.length);
-            solutionNum = this.solutionNum;
-            this.solution = intToWord(
-              solutions[this.solutionNum]);
-
-          }
-          this.rowIndex = 0;
-          this.letterEvaluations = {};
-          this.$keyboard.reload();
-          this.canInput = !0;
-          console.log("Oops:", this.solution);
-        }
-      }, {
-        key: "addLetter",
-        value: function(letter) {
-          // Add a letter the the game
-          if (this.tileIndex < 5 && this.canInput) {
-            this.boardState[this.rowIndex] += letter;
-            var row = this.$board.querySelectorAll("game-row");
-            row[this.rowIndex].setAttribute("letters",
-              this.boardState[this.rowIndex]);
-            this.tileIndex += 1;
-          }
-        }
-      }, {
-        key: "removeLetter",
-        value: function () {
-          // Remove a letter
-          if (!(this.tileIndex <= 0)) {
-            this.boardState[this.rowIndex] = this.boardState[this.rowIndex]
-              .slice(0, this.boardState[this.rowIndex].length - 1);
-            var row = this.$board.querySelectorAll("game-row")[this.rowIndex];
-            this.boardState[this.rowIndex] ?
-              row.setAttribute("letters", this.boardState[this.rowIndex]) :
-              row.removeAttribute("letters");
-            this.tileIndex -= 1;
-          }
-        }
-      }, {
-        key: "submitGuess",
-        value: function() {
-          // Check if the guess is valid
-          if (5 !== this.tileIndex && this.canInput) { // not five letters in the current row
-            this.addToast("Not enough letters");
-            return this.$board.querySelectorAll("game-row")[this.rowIndex]
-            .setAttribute("invalid", ""); // set attribute shakes the row
-          }
-          this.evaluateRow();
-        }
-      }, {
-        key: "evaluateRow",
-        value: function() {
-          // Evaluate the current row input by the player
-          if (!this.canInput) {
-            return;
-          }
-          var currentRow =
-            this.$board.querySelectorAll("game-row")[this.rowIndex];
-          this.currentString = this.boardState[this.rowIndex];
-          if (this.currentString &&
-              !allWords.includes(wordToInt(this.currentString)) &&
-              !solutions.includes(wordToInt(this.currentString))) {
-            // Not in either word list
-            this.addToast("Not in word list");
-            return currentRow.setAttribute("invalid", "");
-
-          }
-
-          // This is where the current guess is compared to the solution
-          var result = function(guess, solution) {
-            var result = Array(solution.length).fill(ABSENT);
-            var notCorrect = Array(solution.length).fill(!0);
-            var notPresent = Array(solution.length).fill(!0);
-
-            // Check for correct letters
-            for (var o = 0; o < guess.length; o++) {
-              if (guess[o] === solution[o] && notCorrect[o]) {
-                result[o] = CORRECT;
-                notCorrect[o] = !1;
-                notPresent[o] = !1;
-              }
-            }
-            // Check for present letters (but misplaced)
-            for (var r = 0; r < guess.length; r++) {
-              var i = guess[r];
-              if (notCorrect[r])
-              for (var l = 0; l < solution.length; l++) {
-                var d = solution[l];
-                if (notPresent[l] && i === d) {
-                  result[r] = PRESENT;
-                  notPresent[l] = !1;
-                  break;
-                }
-              }
-            }
-            return result;
-          }(this.currentString, this.solution);
-
-          // Add the evaluation results to member variable
-          this.evaluations[this.rowIndex] = result;
-          // Get an array of evaluation by letter
-          this.letterEvaluations = buildLetterEvaluation(
-            this.boardState, this.evaluations
-          );
-          // This will trigger a UI update
-          currentRow.evaluation = this.evaluations[this.rowIndex];
-          // Increase row counter and set tile index back to 0
-          this.rowIndex += 1;
-          this.tileIndex = 0;
-        }
-      }, {
-        key: "addToast",
-        value: function(e, a) {
-          // Show a toast with a message to the player
-          var s = arguments.length > 2 &&
-            void 0 !== arguments[2] && arguments[2];
-          var t = document.createElement("game-toast");
-          t.setAttribute("text", e);
-          a && t.setAttribute("duration", a);
-          if (s) {
-            this.shadowRoot.querySelector("#system-toaster").prepend(t);
-          } else {
-            this.shadowRoot.querySelector("#game-toaster").prepend(t);
-          }
-        }
-      }, {
-        key: "connectedCallback",
-        value: function () {
-          // Initialize the member variables and install event listeners
-          var gameRootThis = this;
-          // Append the hthml of the game-root element
-          this.shadowRoot.appendChild(gameRootElement.content.cloneNode(!0));
-
-          // Add event listeners to menu buttons
-          this.shadowRoot.getElementById("settings-button").
-             addEventListener("click", (function(e) {
-               gameRootThis.showSettingsFullPage();
-             }));
-          this.shadowRoot.getElementById("help-button").
-             addEventListener("click", (function(e) {
-               gameRootThis.showHelpFullPage();
-             }));
-          this.shadowRoot.getElementById("reload-button").
-              addEventListener("click", (function(e) {
-                gameRootThis.reload(true);
-              }));
-
-          // Add keyboard event listeners
-          this.addEventListener("game-key-press", (function(e) {
-            var letter = e.detail.key;
-            if (letter === "BACK" || letter === "Backspace") {
-              this.removeLetter();
-            } else if (letter === "ENTER" || letter === "Enter") {
-              this.submitGuess();
-            } else if (alphabet.includes(letter.toLowerCase())) {
-              this.addLetter(letter);
-            }
-          }));
-
-          // Catches the reload-game event, custom event is used because it is
-          // triggered by the reload button in the menu and the event bubbles
-          // up to the game-root element
-          this.addEventListener("reload-game", function(e) {
-            if (e.detail.key === "new-word") {
-              this.reload(true);
-            } else if (e.detail.key === "same-word") {
-              this.reload(false);
-            } else {
-              this.reload(true);
-            }
-          });
-
-          // Catches the last tile revealed event, to check if the game was
-          // either won or lost
-          this.addEventListener("game-last-tile-revealed-in-row",
-            (function(e) {
-              gameRootThis.$keyboard.letterEvaluations =
-                gameRootThis.letterEvaluations;
-              if (this.solution === this.currentString) {
-                this.canInput = !1;
-                var modalDiv = this.shadowRoot.querySelector("game-modal")
-                modalDiv.appendChild(document.createElement("game-win"));
-                modalDiv.setAttribute("open", "");
-              } else if (this.rowIndex > 5) {
-                var modalDiv = this.shadowRoot.querySelector("game-modal")
-                modalDiv.appendChild(document.createElement("game-lose"));
-                modalDiv.setAttribute("open", "");
-                this.canInput = !1;
-              }
-            }));
-
-          // Set member variables
-          this.$board = this.shadowRoot.querySelector("#board");
-					this.$keyboard = this.shadowRoot.querySelector("game-keyboard");
-
-          // Do 6 times
-          for (var c = 0; c < 6; c++) {
-            // Create row, this will trigger connectedCallback events
-            // in the row element, creating tiles
-            var u = document.createElement("game-row");
-
-            // Set a length attribute, does not seem to be used
-            u.setAttribute("length", 5);
-
-            // Append the row to the board
-            this.$board.appendChild(u)
-          }
-          // Resize board if needed
-          this.sizeBoard();
-
-          // Get a new word to play
-          this.reload(true);
-        }
-      }, {
-        key: "sizeBoard",
-        value: function() {
-          // Resize board if needed
-          var e = this.shadowRoot.querySelector("#board-container");
-          var a = Math.min(Math.floor(e.clientHeight * (5 / 6)), 350);
-          var s = 6 * Math.floor(a / 5);
-          this.$board.style.width = "".concat(a, "px");
-          this.$board.style.height = "".concat(s, "px");
-        }
-      }
-    ]);
-
-    return returnFunction;
-  }(ConstructElement(HTMLElement));
-
-  customElements.define("game-root", gameRoot);
 
   // Icons
 
