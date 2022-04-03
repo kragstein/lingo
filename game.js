@@ -510,7 +510,20 @@ this.lingo.game = function (glob) {
                 modalDiv.setAttribute("open", "");
                 this.canInput = !1;
               }
-            }));
+          }));
+
+          // Catches game setting changed event
+          this.shadowRoot.addEventListener("game-setting-change", (function(a) {
+            var s = a.detail;
+            var t = s.name;
+            var n = s.checked;
+            switch (t) {
+              case "dark-theme":
+                return void gameRootThis.setDarkTheme(n);
+              // case "color-blind-theme":
+              //   return void e.setColorBlindTheme(n);
+            }
+          }));
 
           // Set member variables
           this.$board = this.shadowRoot.querySelector("#board");
@@ -533,6 +546,18 @@ this.lingo.game = function (glob) {
 
           // Get a new word to play
           this.reload(true);
+        }
+      }, {
+        key: "setDarkTheme",
+        value: function(e) {
+          console.log("setting dark theme");
+          var a = document.querySelector("body");
+          if (e && !a.classList.contains("nightmode"))
+          { a.classList.add("nightmode") }
+          else { a.classList.remove("nightmode")};
+
+          // this.isDarkTheme = e;
+          // window.localStorage.setItem(j, JSON.stringify(e));
         }
       }, {
         key: "sizeBoard",
@@ -823,9 +848,9 @@ this.lingo.game = function (glob) {
       value: function() {
         var e = this;
         // Append the HTML to the tag
-        e.shadowRoot.appendChild(gameRowElement.content.cloneNode(!0))
+        e.shadowRoot.appendChild(gameRowElement.content.cloneNode(!0));
         // Get the row element
-        this.$row = this.shadowRoot.querySelector(".row")
+        this.$row = this.shadowRoot.querySelector(".row");
         // Five time
         for (var count = 0; count < 5 /* this._length */; count++) {
           // Create a tile
@@ -1443,7 +1468,7 @@ this.lingo.game = function (glob) {
       }
       .content {
         position: relative;
-        color: black;
+        color: var(--color-tone-1);
         padding: 0 32px;
         max-width: var(--game-max-width);
         width: 100%;
@@ -1457,10 +1482,10 @@ this.lingo.game = function (glob) {
       }
       .description {
         font-size: 12px;
-        color: #777b7d;
+        color: var(--color-tone-2);
       }
       a, a:visited {
-        color: #787c7e;
+        color: var(--color-tone-2);
       }
 
       #footnote {
@@ -1469,7 +1494,7 @@ this.lingo.game = function (glob) {
         left: 0;
         right: 0;
         padding: 16px;
-        color: #787c7e;
+        color: var(--color-tone-2);
         font-size: 12px;
         text-align: right;
         display: flex;
@@ -1489,6 +1514,9 @@ this.lingo.game = function (glob) {
         <div class="text">
           <div class="title">Dark Theme</div>
         </div>
+        <div class="control">
+					<game-switch id="dark-theme" name="dark-theme"></game-switch>
+				</div>
       </div>
     </section>
     <section>
@@ -1548,8 +1576,8 @@ this.lingo.game = function (glob) {
       }
       button {
         padding: 0 20px 0;
-        background-color: black;
-        color: white;
+        background-color: var(--color-tone-1);
+        color: var(--color-tone-7);
         border: none;
         border-radius: 8px;
         cursor: pointer;
@@ -1616,8 +1644,8 @@ this.lingo.game = function (glob) {
       }
       button {
         padding: 0 20px 0;
-        background-color: black;
-        color: white;
+        background-color: var(--color-tone-1);
+        color: var(--color-tone-7);
         border: none;
         border-radius: 8px;
         cursor: pointer;
@@ -1805,6 +1833,94 @@ this.lingo.game = function (glob) {
   }(ConstructElement(HTMLElement));
 
   customElements.define("game-icon", icon);
+
+  // Knob
+
+  var switchHTML = document.createElement("template");
+  switchHTML.innerHTML = `
+  <style>
+		.container {
+			display: flex;
+			justify-content: space-between;
+		}
+		.switch {
+			height: 20px;
+			width: 32px;
+			vertical-align: middle;
+			/* not quite right */
+			background: var(--color-tone-3);
+			border-radius: 999px;
+			display: block;
+			position: relative;
+		}
+		.knob {
+			display: block;
+			position: absolute;
+			left: 2px;
+			top: 2px;
+			height: calc(100% - 4px);
+			width: 50%;
+			border-radius: 8px;
+			background: var(--white);
+			transform: translateX(0);
+			transition: transform 0.3s;
+		}
+		:host([checked]) .switch {
+			background: var(--color-correct);
+		}
+		:host([checked]) .knob {
+			transform: translateX(calc(100% - 4px));
+		}
+		:host([disabled]) .switch {      opacity: 0.5;    }
+	</style>
+	<div class="container">
+		<label>
+			<slot></slot>
+		</label>
+		<div class="switch">
+			<span class="knob"></span>
+		</div>
+	</div>`;
+
+    var gameSwitch = function(htmlElement) {
+        setPrototype(returnFunction, htmlElement);
+        var element = constructElement(returnFunction);
+
+        function returnFunction() {
+          var e;
+          isInstanceOf(this, returnFunction);
+          (e = element.call(this)).attachShadow({ mode: "open" });
+          return e;
+        }
+
+        addKeyFunction(returnFunction , [{
+          key: "connectedCallback",
+          value: function() {
+                var e = this;
+                this.shadowRoot.appendChild(switchHTML.content.cloneNode(!0));
+                this.shadowRoot.querySelector(".container").addEventListener("click", (function(a) {
+                  a.stopPropagation();
+                  e.hasAttribute("checked") ? e.removeAttribute("checked") : e.setAttribute("checked", "");
+                  e.dispatchEvent(new CustomEvent("game-setting-change", {
+                    bubbles: !0,
+                    composed: !0,
+                    detail: {
+                      name: e.getAttribute("name"),
+                      checked: e.hasAttribute("checked"),
+                      disabled: e.hasAttribute("disabled")
+                    }
+                  }));
+                }));
+              }
+        }], [{
+            key: "observedAttributes",
+            get: function() {
+                return ["checked"]
+            }
+        }]);
+        return returnFunction;
+    }(ConstructElement(HTMLElement));
+    customElements.define("game-switch", gameSwitch);
 
   // Solutions and words encoding, to avoid cleartext solutions in the source
     function wordToInt(word) {
