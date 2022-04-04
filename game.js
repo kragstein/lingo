@@ -517,24 +517,29 @@ this.lingo.game = function (glob) {
           }));
 
           // Catches game setting changed event
-          this.shadowRoot.addEventListener("game-setting-change", (function(a) {
+          this.shadowRoot.addEventListener("game-setting-change", function(a) {
             var s = a.detail;
             var t = s.name;
             var n = s.checked;
             switch (t) {
               case "dark-theme":
-                window.localStorage.setItem(lingoDarkMode, JSON.stringify(n));
+                window.localStorage.setItem(lingoDarkMode,
+                  JSON.stringify(n));
                 return void gameRootThis.setDarkTheme(n);
               case "color-blind-theme":
-                window.localStorage.setItem(lingoColorBlindMode, JSON.stringify(n));
+                window.localStorage.setItem(lingoColorBlindMode,
+                  JSON.stringify(n));
                 return void gameRootThis.setColorBlindTheme(n);
             }
-          }));
+          });
 
           // Load if dark or colorblind modes are saved in local storage
-          var isDarkMode = JSON.parse(window.localStorage.getItem(lingoDarkMode));
-          var isDarkModePrefered = window.matchMedia("(prefers-color-scheme: dark)").matches;
-          var isColorBlindMode = JSON.parse(window.localStorage.getItem(lingoColorBlindMode));
+          var isDarkMode = JSON.parse(
+            window.localStorage.getItem(lingoDarkMode));
+          var isDarkModePrefered = window.matchMedia(
+            "(prefers-color-scheme: dark)").matches;
+          var isColorBlindMode = JSON.parse(
+            window.localStorage.getItem(lingoColorBlindMode));
 
           if (!0 === isDarkMode || !1 === isDarkMode) {
             this.setDarkTheme(isDarkMode);
@@ -753,8 +758,8 @@ this.lingo.game = function (glob) {
       key: "attributeChangedCallback",
       value: function(e, a, s) {
         // When using custom elements (or tags), we can catch when an attribute
-        // is changed, for example when the letter is added, to start animations
-        // and wether a tile is empty, or colored
+        // is changed, for example when the letter is added, to start
+        // animations and wether a tile is empty, or colored
         switch (e) {
           case "letter":
             if (s === a) {
@@ -1543,6 +1548,7 @@ this.lingo.game = function (glob) {
       <div class="setting">
         <div class="text">
           <div class="title">Dark Theme</div>
+          <div class="description">If you play in the dark...</div>
         </div>
         <div class="control">
 					<game-switch id="dark-theme" name="dark-theme"></game-switch>
@@ -1561,14 +1567,20 @@ this.lingo.game = function (glob) {
     <section>
       <div class="setting">
         <div class="text">
-          <div class="title">More ?</div>
+          <div class="title">Check out the source code</div>
         </div>
-        <div class="control"><a href="./">Link</a></div>
+        <div class="control"><a href="https://github.com/kragstein/lingo">Link</a></div>
+      </div>
+      <div class="setting">
+        <div class="text">
+          <div class="title">Play at this address</div>
+        </div>
+        <div class="control"><a href="https://lingo.kragstein.ch">Link</a></div>
       </div>
     </section>
 
     <div id="footnote">
-      <div>© Lingo 2022</div>
+      <div id="year-footer">Lingo 1970</div>
       <div id="puzzle-number">#123</div>
     </div>
 
@@ -1594,6 +1606,9 @@ this.lingo.game = function (glob) {
         this.shadowRoot.appendChild(settingsElement.content.cloneNode(!0));
         var pNum = this.shadowRoot.querySelector("#puzzle-number");
         pNum.innerHTML = "#" + solutionNum;
+        var pYearFooter = this.shadowRoot.querySelector("#year-footer");
+        pYearFooter.innerHTML = `Lingo ${new Date().getFullYear()}`;
+
         this.render();
       }
     }, {
@@ -1953,18 +1968,22 @@ this.lingo.game = function (glob) {
           value: function() {
                 var e = this;
                 this.shadowRoot.appendChild(switchHTML.content.cloneNode(!0));
-                this.shadowRoot.querySelector(".container").addEventListener("click", (function(a) {
-                  a.stopPropagation();
-                  e.hasAttribute("checked") ? e.removeAttribute("checked") : e.setAttribute("checked", "");
-                  e.dispatchEvent(new CustomEvent("game-setting-change", {
-                    bubbles: !0,
-                    composed: !0,
-                    detail: {
-                      name: e.getAttribute("name"),
-                      checked: e.hasAttribute("checked"),
-                      disabled: e.hasAttribute("disabled")
-                    }
-                  }));
+                this.shadowRoot.querySelector(".container")
+                  .addEventListener("click", (function(a) {
+                    a.stopPropagation();
+                    e.hasAttribute("checked") ?
+                      e.removeAttribute("checked") :
+                      e.setAttribute("checked", "");
+
+                    e.dispatchEvent(new CustomEvent("game-setting-change", {
+                      bubbles: !0,
+                      composed: !0,
+                      detail: {
+                        name: e.getAttribute("name"),
+                        checked: e.hasAttribute("checked"),
+                        disabled: e.hasAttribute("disabled")
+                      }
+                    }));
                 }));
               }
         }], [{
