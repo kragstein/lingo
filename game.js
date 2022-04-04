@@ -1412,7 +1412,9 @@ this.lingo.game = function (glob) {
   <p>Be sure to inspect the source code.</p>
   <p>Right-click ➜ Inspect</p>
   <p>It is meant to be readable.</p>
-  <p>The git repository will be available soon.</p>
+  <p>The git repository is available
+    <a href="https://github.com/kragstein/lingo">here</a>.
+  </p>
   </div>
 
   <h1>How to Lingo</h1>
