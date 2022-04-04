@@ -546,7 +546,7 @@ this.lingo.game = function (glob) {
           } else if (isDarkModePrefered) {
             this.setDarkTheme(!0);
           }
-          if (!0 !== isColorBlindMode && !1 !== isColorBlindMode) {
+          if (isColorBlindMode) {
             this.setColorBlindTheme(isColorBlindMode);
           }
 
