@@ -30,6 +30,10 @@ this.lingo.game = function (glob) {
     };
   var solutionNum = 0;
 
+  // Strings used as keys to save variable to local storage
+  var lingoDarkMode = "lingo-dark-mode";
+  var lingoColorBlindMode = "lingo-color-blind-mode";
+
   // Buttons
   var button = document.createElement("template");
   button.innerHTML = "<button>key</button>\n";
@@ -519,11 +523,27 @@ this.lingo.game = function (glob) {
             var n = s.checked;
             switch (t) {
               case "dark-theme":
+                window.localStorage.setItem(lingoDarkMode, JSON.stringify(n));
                 return void gameRootThis.setDarkTheme(n);
-              // case "color-blind-theme":
-              //   return void e.setColorBlindTheme(n);
+              case "color-blind-theme":
+                window.localStorage.setItem(lingoColorBlindMode, JSON.stringify(n));
+                return void gameRootThis.setColorBlindTheme(n);
             }
           }));
+
+          // Load if dark or colorblind modes are saved in local storage
+          var isDarkMode = JSON.parse(window.localStorage.getItem(lingoDarkMode));
+          var isDarkModePrefered = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var isColorBlindMode = JSON.parse(window.localStorage.getItem(lingoColorBlindMode));
+
+          if (!0 === isDarkMode || !1 === isDarkMode) {
+            this.setDarkTheme(isDarkMode);
+          } else if (isDarkModePrefered) {
+            this.setDarkTheme(!0);
+          }
+          if (!0 !== isColorBlindMode && !1 !== isColorBlindMode) {
+            this.setColorBlindTheme(isColorBlindMode);
+          }
 
           // Set member variables
           this.$board = this.shadowRoot.querySelector("#board");
@@ -555,9 +575,19 @@ this.lingo.game = function (glob) {
           if (e && !a.classList.contains("nightmode"))
           { a.classList.add("nightmode") }
           else { a.classList.remove("nightmode")};
-
           // this.isDarkTheme = e;
           // window.localStorage.setItem(j, JSON.stringify(e));
+        }
+      }, {
+        key: "setColorBlindTheme",
+        value: function(e) {
+          var a = document.querySelector("body");
+          if (e && !a.classList.contains("colorblind"))
+          { a.classList.add("colorblind"); }
+          else { a.classList.remove("colorblind"); }
+
+          // this.isColorBlindTheme = e
+          //window.localStorage.setItem(S, JSON.stringify(e))
         }
       }, {
         key: "sizeBoard",
@@ -1504,12 +1534,12 @@ this.lingo.game = function (glob) {
 
     </style>
     <section>
-      <div class="setting">
+      <!-- <div class="setting">
         <div class="text">
           <div class="title">Hard Mode</div>
           <div class="description">Description</div>
         </div>
-      </div>
+      </div> -->
       <div class="setting">
         <div class="text">
           <div class="title">Dark Theme</div>
@@ -1518,6 +1548,15 @@ this.lingo.game = function (glob) {
 					<game-switch id="dark-theme" name="dark-theme"></game-switch>
 				</div>
       </div>
+      <div class="setting">
+        <div class="text">
+          <div class="title">High Contrast Mode</div>
+					<div class="description">For improved color vision</div>
+				</div>
+				<div class="control">
+					<game-switch id="color-blind-theme" name="color-blind-theme"></game-switch>
+				</div>
+			</div>
     </section>
     <section>
       <div class="setting">
@@ -1544,15 +1583,31 @@ this.lingo.game = function (glob) {
       var e;
       isInstanceOf(this, returnFunction);
       (e = element.call(this)).attachShadow({ mode: "open" });
+
       return e;
     }
 
-    addKeyFunction(returnFunction , [{
+    addKeyFunction(returnFunction , [
+    {
       key: "connectedCallback",
       value: function() {
         this.shadowRoot.appendChild(settingsElement.content.cloneNode(!0));
         var pNum = this.shadowRoot.querySelector("#puzzle-number");
         pNum.innerHTML = "#" + solutionNum;
+        this.render();
+      }
+    }, {
+      key: "render",
+      value: function() {
+        var body = document.querySelector("body");
+        if (body.classList.contains("nightmode")) {
+          this.shadowRoot.querySelector("#dark-theme")
+            .setAttribute("checked", "");
+        }
+				if (body.classList.contains("colorblind")) {
+          this.shadowRoot.querySelector("#color-blind-theme")
+            .setAttribute("checked", "");
+        }
       }
     }]);
 
